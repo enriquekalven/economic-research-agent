@@ -34,4 +34,4 @@ async def send_message(request: types.MessageRequest):
         )
     except Exception as e:
         logger.error(f"Error sending request: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
