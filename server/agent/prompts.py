@@ -4,11 +4,15 @@
 """File containing Gemini prompts."""
 
 class Prompts:
-    def initial_routing_prompt() -> str:
+    """
+    Prompts for LLM Calls
+    """
+    def initial_routing_prompt(self) -> str:
         """
         Initial Gemini routing prompt.
 
-        Returns: (str): system instructions
+        Args: (str) the user query.
+        Returns: (str) system instructions.
 
         """
 
