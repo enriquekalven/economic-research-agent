@@ -66,9 +66,9 @@ def find_hq_relocation(
 
     query = f"""
 SELECT
-    req_city.City,
-    req_city.State,
-    req_city.County,
+    req_city.City as city,
+    req_city.State as state,
+    req_city.County as county,
     req_city.`Primary SIC Description` as Industry
 FROM
     ({select_city_query}) AS req_city
