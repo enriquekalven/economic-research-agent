@@ -3,6 +3,7 @@
 #  agreement with Google.
 """File containing Gemini prompts."""
 
+
 class Prompts:
     def initial_routing_prompt() -> str:
         """
