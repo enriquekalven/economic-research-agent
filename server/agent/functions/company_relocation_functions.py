@@ -15,8 +15,8 @@ PROJECT_ID = "ghp-poc"
 
 def find_company_relocation(
     city_name: str,
-    industry: Optional[str]=None,
-    state_name: Optional[str]=None,
+    industry: Optional[str] = None,
+    state_name: Optional[str] = None,
 ) -> CompanyRelocationResult:
     f"""Search for Company Relocation Data.
 
@@ -39,13 +39,14 @@ def find_company_relocation(
     if city_name:
         city_selector = f"req_city.City = '{city_name}'"
         query_parameters.extend(
-        [
-            bigquery.ScalarQueryParameter(
-                name="city_name",
-                type_=bigquery.SqlParameterScalarTypes.STRING,
-                value=city_name,
-            ),
-        ])
+            [
+                bigquery.ScalarQueryParameter(
+                    name="city_name",
+                    type_=bigquery.SqlParameterScalarTypes.STRING,
+                    value=city_name,
+                ),
+            ]
+        )
         if state_name:
             city_selector = f"req_city.City = '{city_name}' AND req_city.State = '{state_name}'"
             query_parameters.extend(
@@ -89,6 +90,7 @@ FROM
 
     city_analysis = [
         CompanyRelocation.model_validate(row.to_dict())
-         for idx, row in query_df.iterrows()]
+        for idx, row in query_df.iterrows()
+    ]
 
     return CompanyRelocationResult(city_analysis=city_analysis)
