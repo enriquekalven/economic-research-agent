@@ -15,7 +15,7 @@ PROJECT_ID = "ghp-poc"
 
 def find_metro_matrix(
     city_name: str,
-    state_name: Optional[str]=None,
+    state_name: Optional[str] = None,
 ) -> MetroMatrixResult:
     f"""Search for overall metro data for the specified city. Called for each city in the MetroMatrix comparison.
 
@@ -37,13 +37,14 @@ def find_metro_matrix(
     if city_name:
         city_selector = f"req_city.City = '{city_name}'"
         query_parameters.extend(
-        [
-            bigquery.ScalarQueryParameter(
-                name="city_name",
-                type_=bigquery.SqlParameterScalarTypes.STRING,
-                value=city_name,
-            ),
-        ])
+            [
+                bigquery.ScalarQueryParameter(
+                    name="city_name",
+                    type_=bigquery.SqlParameterScalarTypes.STRING,
+                    value=city_name,
+                ),
+            ]
+        )
         if state_name:
             city_selector = f"req_city.City = '{city_name}' AND req_city.State = '{state_name}'"
             query_parameters.extend(
@@ -55,7 +56,6 @@ def find_metro_matrix(
                     ),
                 ]
             )
-
     where_clause = ""
     if city_selector:
         where_clause = f"WHERE {city_selector}"
@@ -86,8 +86,7 @@ FROM
     query_df: pd.DataFrame = query_job.to_dataframe()
 
     city_analysis = [
-        MetroMatrix.model_validate(row.to_dict())
-         for idx, row in query_df.iterrows()]
+        MetroMatrix.model_validate(row.to_dict()) for idx, row in query_df.iterrows()
+    ]
 
     return MetroMatrixResult(city_analysis=city_analysis)
-
