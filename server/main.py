@@ -25,7 +25,7 @@ from server.agent.functions.invalid_request_functions import invalid_request
 app = FastAPI()
 
 genai_client = genai.Client(
-    vertexai=True, project="ghp-poc", location="us-centrall"
+    vertexai=True, project="ghp-poc", location="us-east4"
 )
 
 @app.get("/")
@@ -60,36 +60,42 @@ async def send_message(request: types.MessageRequest):
         # Process the response - Adapt based on how we decide
         # to implement the function calls and Gemini's text
         # responses.
-        gemini_response = response.candidates[0].content
+        gemini_response = response.automatic_function_calling_history + [response.candidates[0].content]
+        logger.info(gemini_response)
+        for content in gemini_response:
+            logger.info(content)
 
         #If there is a function call
-        for part in gemini_response.parts:
-          if part.function_call:
-            fn_name = part.function_call.name
-            fn_args = part.function_call.args
+        # for part in gemini_response.parts:
+        #   if part.function_call:
+        #     logger.info("entered")
+        #     fn_name = part.function_call.name
+        #     fn_args = part.function_call.args
 
-            if fn_name == "find_metro_matrix":
-              result = find_metro_matrix(**fn_args)
-            elif fn_name == "find_hq_relocation":
-              result = find_hq_relocation(**fn_args)
-            elif fn_name == "find_company_relocation":
-              result = find_company_relocation(**fn_args)
-            elif fn_name == "invalid_request":
-              result = invalid_request(request.text)
-            else:
-              result = "Unknown function called"
+        #     if fn_name == "find_metro_matrix":
+        #       logger.info("MM")
+        #       result = find_metro_matrix(**fn_args)
+        #     elif fn_name == "find_hq_relocation":
+        #       result = find_hq_relocation(**fn_args)
+        #     elif fn_name == "find_company_relocation":
+        #       result = find_company_relocation(**fn_args)
+        #     elif fn_name == "invalid_request":
+        #       result = invalid_request(request.text)
+        #     else:
+        #       result = "Unknown function called"
 
-            # Convert the result to a string or a dict that can be included in the response
-            response_text = str(result)
-            logger.info(response_text)
+        #     # Convert the result to a string or a dict that can be included in the response
+        #     response_text = str(result)
+        #     logger.info(response_text)
           
-          elif part.text:
-            response_text = part.text
-          else: 
-            response_text = "No response"
+        #   elif part.text:
+        #     response_text = part.text
+        #   else: 
+        #     response_text = "No response"
+
 
         return JSONResponse(
-            content={"text": response_text, "session_id": request.session_id},
+            content={"text": gemini_response, "session_id": request.session_id},
             status_code=200
         )
     except Exception as e:
