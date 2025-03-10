@@ -3,20 +3,23 @@
 #  agreement with Google.
 """Main file to run the FastAPI server."""
 
+import os
+import uvicorn
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-
+from google import genai
+from google.genai import types as genai_types
 from server.common import types
 from server.common.logging import logger
 
-from google import genai
-from google.genai import types as genai_types
 from agent.prompts import Prompts
 from agent.models import MetroMatrixResult, HQRelocationResult, CompanyRelocationResult
-from agent.functions.company_relocation_functions import find_company_relocation
-from agent.functions.hq_relocation_functions import find_hq_relocation
-from agent.functions.metro_matrix_functions import find_metro_matrix
-from agent.functions.invalid_request_functions import invalid_request
+from server.agent.functions.company_relocation_functions import find_company_relocation
+from server.agent.functions.company_relocation_functions import find_company_relocation
+from server.agent.functions.hq_relocation_functions import find_hq_relocation
+from server.agent.functions.metro_matrix_functions import find_metro_matrix
+from server.agent.functions.invalid_request_functions import invalid_request
 
 # Initialize Fast API App and Gemini Client.
 app = FastAPI()
@@ -78,11 +81,13 @@ async def send_message(request: types.MessageRequest):
 
             # Convert the result to a string or a dict that can be included in the response
             response_text = str(result)
+            logger.info(response_text)
           
           elif part.text:
             response_text = part.text
           else: 
             response_text = "No response"
+
         return JSONResponse(
             content={"text": response_text, "session_id": request.session_id},
             status_code=200
@@ -90,3 +95,6 @@ async def send_message(request: types.MessageRequest):
     except Exception as e:
         logger.error(f"Error sending request: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
