@@ -4,6 +4,7 @@
 """Functions supporting head quarter relocation workflow."""
 
 import pandas as pd
+from server.agent.models import HQRelocation, HQRelocationResult
 from google.cloud import bigquery
 from typing import Optional
 

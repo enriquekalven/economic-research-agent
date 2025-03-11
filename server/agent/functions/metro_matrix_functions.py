@@ -4,6 +4,7 @@
 """Functions supporting company relocation workflow."""
 
 import pandas as pd
+from server.agent.models import MetroMatrix, MetroMatrixResult
 from google.cloud import bigquery
 from typing import Optional
 
@@ -63,7 +64,7 @@ def find_metro_matrix(
 
     select_city_query = f"SELECT * FROM {DATA_AXLE}"
 
-    # TODO: UPDATE THIS - just test
+    # TODO: UPDATE THIS - just test.
 
     query = f"""
 SELECT
