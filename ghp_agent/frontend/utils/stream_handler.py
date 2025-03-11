@@ -244,7 +244,6 @@ class EventProcessor:
                 },
             }
         )
-
         for message, _ in stream:
             if isinstance(message, dict):
                 if message.get("type") == "constructor":
