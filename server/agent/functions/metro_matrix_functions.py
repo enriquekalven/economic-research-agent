@@ -4,9 +4,10 @@
 """Functions supporting company relocation workflow."""
 
 import pandas as pd
-from server.agent.models import MetroMatrix, MetroMatrixResult
 from google.cloud import bigquery
 from typing import Optional
+
+from server.agent.models import MetroMatrix, MetroMatrixResult
 
 DATA_AXLE = "ghp-poc.jobseq.data_axle"
 PROJECT_ID = "ghp-poc"
