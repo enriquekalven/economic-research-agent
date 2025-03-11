@@ -17,15 +17,18 @@ def find_hq_relocation(
     industry: Optional[str]=None,
     state_name: Optional[str]=None,
 ) -> HQRelocationResult:
-    f"""Search for Company Headquarters Relocation Data.
+    """Search for Company Headquarters Relocation Data.
 
     Args:
         city_name (str): The name of the city.
-        state_name (str): The 2-letter abbreviation of the state specified by the user.
-        industry (str): The industry of the comapny considering Head Quarter relocation.
+        state_name (str): The 2-letter abbreviation of the
+            state specified by the user.
+        industry (str): The industry of the comapny considering
+            Head Quarter relocation.
 
     Returns:
-        HQRelocationResult: The return value. Object including overall industry data for the city, state.
+        HQRelocationResult: The return value. Object including
+            overall industry data for the city, state.
     """
 
     # Initialize query parameters
@@ -46,7 +49,8 @@ def find_hq_relocation(
             ),
         ])
         if state_name:
-            city_selector = f"req_city.City = '{city_name}' AND req_city.State = '{state_name}'"
+            city_selector = f"""req_city.City = '{city_name}' AND
+                req_city.State = '{state_name}'"""
             query_parameters.extend(
                 [
                     bigquery.ScalarQueryParameter(

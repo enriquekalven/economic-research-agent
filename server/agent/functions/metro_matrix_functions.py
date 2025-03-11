@@ -17,14 +17,16 @@ def find_metro_matrix(
     city_name: str,
     state_name: Optional[str]=None,
 ) -> MetroMatrixResult:
-    f"""Search for overall metro data for the specified city. Called for each city in the MetroMatrix comparison.
+    """Search for overall metro data for each specified city.
 
     Args:
         city_name (str): The name of the city.
-        state_name (Optional, str): The 2-letter abbreviation of the state specified by the user.
+        state_name (Optional, str): The 2-letter abbreviation
+            of the state specified by the user.
 
     Returns:
-        MetroMatrixResult: The return value. Object including overall data for the city, state.
+        MetroMatrixResult: The return value. Object including
+            overall data for the city, state.
     """
 
     # Initialize query parameters
@@ -45,7 +47,8 @@ def find_metro_matrix(
             ),
         ])
         if state_name:
-            city_selector = f"req_city.City = '{city_name}' AND req_city.State = '{state_name}'"
+            city_selector = f"""req_city.City = '{city_name}'
+                AND req_city.State = '{state_name}'"""
             query_parameters.extend(
                 [
                     bigquery.ScalarQueryParameter(
