@@ -18,15 +18,17 @@ def find_company_relocation(
     industry: Optional[str]=None,
     state_name: Optional[str]=None,
 ) -> CompanyRelocationResult:
-    f"""Search for Company Relocation Data.
+    """Search for Company Relocation Data.
 
     Args:
         city_name (str): The name of the city.
-        state_name (str): The 2-letter abbreviation of the state specified by the user.
+        state_name (str): The 2-letter abbreviation of the state
+            specified by the user.
         industry (str): The industry of the comapny considering relocation.
 
     Returns:
-        CompanyRelocationResult: The return value. Object including overall industry data for the city, state.
+        CompanyRelocationResult: The return value. Object including overall
+            industry data for the city, state.
     """
 
     # Initialize query parameters
@@ -47,7 +49,8 @@ def find_company_relocation(
             ),
         ])
         if state_name:
-            city_selector = f"req_city.City = '{city_name}' AND req_city.State = '{state_name}'"
+            city_selector = f"""req_city.City = '{city_name}' AND
+                req_city.State = '{state_name}'"""
             query_parameters.extend(
                 [
                     bigquery.ScalarQueryParameter(
