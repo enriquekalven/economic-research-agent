@@ -4,7 +4,7 @@
 """Functions supporting head quarter relocation workflow."""
 
 import pandas as pd
-from agent.models import HQRelocation, HQRelocationResult
+from server.agent.models import HQRelocation, HQRelocationResult
 from google.cloud import bigquery
 from typing import Optional
 
@@ -55,13 +55,13 @@ def find_hq_relocation(
                     ),
                 ]
             )
-        
+
     where_clause = ""
     if city_selector:
         where_clause = f"WHERE {city_selector}"
 
     select_city_query = f"SELECT * FROM {DATA_AXLE}"
-    
+
     # TODO: UPDATE THIS - just test
 
     query = f"""
