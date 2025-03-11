@@ -24,6 +24,9 @@ dependencies = [
     "streamlit-feedback"
 ]
 
+requires-python = ">=3.10,<=3.13.3"
+    "uvicorn~=0.34.0"
+]
 
 requires-python = ">=3.10,<=3.13"
 
