@@ -4,12 +4,13 @@
 """Functions supporting company relocation workflow."""
 
 import pandas as pd
-from agent.models import MetroMatrix, MetroMatrixResult
+from server.agent.models import MetroMatrix, MetroMatrixResult
 from google.cloud import bigquery
 from typing import Optional
 
 DATA_AXLE = "ghp-poc.jobseq.data_axle"
 PROJECT_ID = "ghp-poc"
+
 
 def find_metro_matrix(
     city_name: str,
@@ -53,14 +54,14 @@ def find_metro_matrix(
                     ),
                 ]
             )
-        
+
     where_clause = ""
     if city_selector:
         where_clause = f"WHERE {city_selector}"
 
     select_city_query = f"SELECT * FROM {DATA_AXLE}"
-    
-    # TODO: UPDATE THIS - just test
+
+    # TODO: UPDATE THIS - just test.
 
     query = f"""
 SELECT
@@ -88,3 +89,4 @@ FROM
          for idx, row in query_df.iterrows()]
 
     return MetroMatrixResult(city_analysis=city_analysis)
+
