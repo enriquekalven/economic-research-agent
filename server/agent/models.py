@@ -15,6 +15,7 @@ class MetroMatrix(pydantic.BaseModel):
     state: Optional[str] = None
     county: Optional[str] = None
 
+
 class HQRelocation(pydantic.BaseModel):
     """
     Head Quarter Relocation workflow object.
@@ -23,6 +24,7 @@ class HQRelocation(pydantic.BaseModel):
     state: Optional[str] = None
     county: Optional[str] = None
     industry: Optional[str] = None
+
 
 class CompanyRelocation(pydantic.BaseModel):
     """
@@ -33,6 +35,7 @@ class CompanyRelocation(pydantic.BaseModel):
     county: Optional[str] = None
     industry: Optional[str] = None
 
+
 # Tool Return Types
 class MetroMatrixResult(pydantic.BaseModel):
     """
@@ -41,12 +44,14 @@ class MetroMatrixResult(pydantic.BaseModel):
     city_analysis: list[MetroMatrix] = []
     error: Optional[str] = None
 
+
 class HQRelocationResult(pydantic.BaseModel):
     """
     Head Quarter Relocation analysis result object.
     """
     city_analysis: list[HQRelocation] = []
     error: Optional[str] = None
+
 
 class CompanyRelocationResult(pydantic.BaseModel):
     """

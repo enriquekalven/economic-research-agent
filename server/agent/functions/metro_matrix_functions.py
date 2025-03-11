@@ -68,14 +68,14 @@ def find_metro_matrix(
     # TODO: UPDATE THIS - just test.
 
     query = f"""
-SELECT
-    req_city.City as city,
-    req_city.State as state,
-    req_city.County as county
-FROM
-    ({select_city_query}) AS req_city
-{where_clause} LIMIT 1
-""".strip()
+    SELECT
+        req_city.City as city,
+        req_city.State as state,
+        req_city.County as county
+    FROM
+        ({select_city_query}) AS req_city
+    {where_clause} LIMIT 1
+    """.strip()
 
     query_job_config = bigquery.QueryJobConfig()
     query_job_config.query_parameters = query_parameters
