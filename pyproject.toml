@@ -5,10 +5,15 @@ description = "GHP Chat POC"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastapi>=0.115.11"
+    "db-dtypes==1.17.0",
+    "fastapi>=0.115.11",
     "google-cloud-aiplatform>=1.83.0",
+    "google-cloud-bigquery>=3.30.0",
+    "google-genai>=1.5.0",
+    "pandas>=2.2.3",
+    "pydantic>=2.10.6",
     "pylint>=3.3.4",
-    "uvicorn>=0.34.0
+    "uvicorn>=0.34.0"
 ]
 
 [project.optional-dependencies]
