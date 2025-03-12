@@ -20,6 +20,10 @@ from langchain_google_vertexai import ChatVertexAI
 from langgraph.graph import END, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 
+from app.tools.company_relocation_functions import find_company_relocation
+from app.tools.hq_relocation_functions import find_hq_relocation
+from app.tools.metro_matrix_functions import find_metro_matrix
+
 LOCATION = "us-central1"
 LLM = "gemini-2.0-flash-001"
 
@@ -33,7 +37,7 @@ def search(query: str) -> str:
     return "It's 90 degrees and sunny."
 
 
-tools = [search]
+tools = [find_company_relocation, find_hq_relocation, find_metro_matrix]
 
 # 2. Set up the language model
 llm = ChatVertexAI(
