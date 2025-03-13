@@ -52,16 +52,6 @@ llm = ChatVertexAI(
     temperature=0,
     max_tokens=1024,
     streaming=True,
-    tools=[search],
-)
-
-# 2. Set up the language model
-llm = ChatVertexAI(
-    model=LLM,
-    location=LOCATION,
-    temperature=0,
-    max_tokens=1024,
-    streaming=True,
     system_instruction=prompts.initial_routing_prompt(),
 ).bind_tools(tools)
 
