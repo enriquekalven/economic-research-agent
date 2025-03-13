@@ -3,10 +3,12 @@
 #  agreement with Google.
 """File containing Gemini prompts."""
 
+
 class Prompts:
     """
     Prompts for LLM Calls
     """
+
     def initial_routing_prompt(self) -> str:
         """
         Initial Gemini routing prompt.
@@ -26,4 +28,6 @@ class Prompts:
         When the user asks for information about a location, they must provide the city name. If the user specified a state, use the state's two letter abreviation for the function call. If the query requires an industry, clarify the industry if needed.
 
         If a user request is ambiguous, ask clarifying questions to determine the exact function and parameters needed. Do not make assumptions about missing information.
+
+        Return the response in markdown. If response is a list, display as a table.
         """

@@ -77,7 +77,7 @@ def find_metro_matrix(
         req_city.County as county
     FROM
         ({select_city_query}) AS req_city
-    {where_clause} LIMIT 1
+    {where_clause} LIMIT 10
     """.strip()
 
     query_job_config = bigquery.QueryJobConfig()
@@ -90,6 +90,7 @@ def find_metro_matrix(
     )
 
     query_df: pd.DataFrame = query_job.to_dataframe()
+    return query_df
 
     city_analysis = [
         MetroMatrix.model_validate(row.to_dict()) for idx, row in query_df.iterrows()
