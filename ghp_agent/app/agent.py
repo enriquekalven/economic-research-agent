@@ -23,6 +23,7 @@ from langgraph.prebuilt import ToolNode
 from app.tools.company_relocation_functions import find_company_relocation
 from app.tools.hq_relocation_functions import find_hq_relocation
 from app.tools.metro_matrix_functions import find_metro_matrix
+from app.utils.prompts import Prompts
 
 LOCATION = "us-central1"
 LLM = "gemini-2.0-flash-001"
@@ -40,8 +41,14 @@ def search(query: str) -> str:
 tools = [find_company_relocation, find_hq_relocation, find_metro_matrix]
 
 # 2. Set up the language model
+prompts = Prompts()  # Instantiate Prompts
 llm = ChatVertexAI(
-    model=LLM, location=LOCATION, temperature=0, max_tokens=1024, streaming=True
+    model=LLM,
+    location=LOCATION,
+    temperature=0,
+    max_tokens=1024,
+    streaming=True,
+    system_instruction=prompts.initial_routing_prompt(),
 ).bind_tools(tools)
 
 
