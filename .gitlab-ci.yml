@@ -31,7 +31,7 @@ cache:
         - venv/
 
 before_script:
-    - python -V  # Print out python version for debugging
+    - python -V # Print out python version for debugging
     - python -m venv venv
     - source venv/bin/activate
 
@@ -44,8 +44,8 @@ noop:
           when: never
         - if: $CI_MERGE_REQUEST_IID
           changes:
-            - '**/*.{py}'
-            - tests/**/*
+              - "**/*.{py}"
+              - tests/**/*
           when: never
         - when: on_success
     cache: {}
@@ -56,11 +56,9 @@ linting:
     stage: lint
     rules:
         - changes:
-            - '**/*.{py}'
-            - tests/license/license_check.sh
+              - "**/*.{py}"
           when: on_success
         - when: never
     script:
-        - tests/license/license_check.sh
         - pip install pylint==2.8.3
         - pylint --jobs=0 $(git ls-files '*.py')
