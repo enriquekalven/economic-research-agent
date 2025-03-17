@@ -62,8 +62,8 @@ class LocalChatMessageHistory(BaseChatMessageHistory):
                     ):
                         raise ValueError(
                             f"""Invalid format in {file_path}.
-                        YAML file can only contain one conversation with the following
-                        structure.
+                        YAML file can only contain one conversation with 
+                        the following structure.
                           - messages:
                               - content: [message text]
                               - type: (human or ai)"""
