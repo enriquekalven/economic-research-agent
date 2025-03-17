@@ -3,15 +3,22 @@
 #  agreement with Google.
 """Functions supporting company relocation workflow."""
 
-import pandas as pd
-from google.cloud import bigquery
+import logging
 from typing import Optional
 
-from app.utils.models import MetroMatrixResult
+from google.cloud import bigquery
 from langchain_core.tools import tool
+import pandas as pd
+
+from app.utils.models import MetroMatrixResult
+
 
 DATA_AXLE = "ghp-poc.jobseq.data_axle"
 PROJECT_ID = "ghp-poc"
+
+# Logger.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @tool

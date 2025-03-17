@@ -67,9 +67,7 @@ def call_model(
     state: MessagesState, config: RunnableConfig
 ) -> dict[str, BaseMessage]:
     """Calls the language model and returns the response."""
-    # system_message = "You are a helpful AI assistant."
     system_message = prompts.initial_routing_prompt()
-    system_message = "You are a helpful AI assistant."
     messages_with_system = [
         {"type": "system", "content": system_message}
     ] + state["messages"]
