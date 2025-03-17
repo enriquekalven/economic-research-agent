@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Utility for Tracing
+"""
+
 import json
 import logging
 from collections.abc import Sequence
@@ -26,11 +30,12 @@ from opentelemetry.sdk.trace.export import SpanExportResult
 
 class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
     """
-    An extended version of CloudTraceSpanExporter that logs span data to Google Cloud Logging
-    and handles large attribute values by storing them in Google Cloud Storage.
-
-    This class helps bypass the 256 character limit of Cloud Trace for attribute values
-    by leveraging Cloud Logging (which has a 256KB limit) and Cloud Storage for larger payloads.
+    An extended version of CloudTraceSpanExporter that logs span data to
+    Google Cloud Logging and handles large attribute values by storing them
+    in Google Cloud Storage.
+    This class helps bypass the 256 character limit of Cloud Trace for
+    attribute values by leveraging Cloud Logging (which has a 256KB limit) and
+    Cloud Storage for larger payloads.
     """
 
     def __init__(
@@ -56,7 +61,9 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
             project=self.project_id
         )
         self.logger = self.logging_client.logger(__name__)
-        self.storage_client = storage_client or storage.Client(project=self.project_id)
+        self.storage_client = storage_client or storage.Client(
+            project=self.project_id
+        )
         self.bucket_name = bucket_name or f"{self.project_id}-logs-data"
         self.bucket = self.storage_client.bucket(self.bucket_name)
 
@@ -73,7 +80,9 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
             span_id = format(span_context.span_id, "x")
             span_dict = json.loads(span.to_json())
 
-            span_dict["trace"] = f"projects/{self.project_id}/traces/{trace_id}"
+            span_dict["trace"] = (
+                f"projects/{self.project_id}/traces/{trace_id}"
+            )
             span_dict["span_id"] = span_id
 
             span_dict = self._process_large_attributes(
@@ -112,8 +121,8 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
 
     def _process_large_attributes(self, span_dict: dict, span_id: str) -> dict:
         """
-        Process large attribute values by storing them in GCS if they exceed the size
-        limit of Google Cloud Logging.
+        Process large attribute values by storing them in GCS
+        if they exceed the size limit of Google Cloud Logging.
 
         :param span_dict: The span data dictionary
         :param trace_id: The trace ID
@@ -127,7 +136,9 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
             attributes_retain = dict(attributes.items())
 
             # Store large payload in GCS
-            gcs_uri = self.store_in_gcs(json.dumps(attributes_payload), span_id)
+            gcs_uri = self.store_in_gcs(
+                json.dumps(attributes_payload), span_id
+            )
             attributes_retain["uri_payload"] = gcs_uri
             attributes_retain["url_payload"] = (
                 f"https://storage.mtls.cloud.google.com/"
@@ -136,8 +147,9 @@ class CloudTraceLoggingSpanExporter(CloudTraceSpanExporter):
 
             span_dict["attributes"] = attributes_retain
             logging.info(
-                "Length of payload span above 250 KB, storing attributes in GCS "
-                "to avoid large log entry errors"
+                """Length of payload span above 250 KB, 
+                storing attributes in GCS "
+                to avoid large log entry errors"""
             )
 
         return span_dict

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Main definition of agent workflow
+"""
+
 # mypy: disable-error-code="union-attr"
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableConfig
@@ -48,7 +52,7 @@ llm = ChatVertexAI(
     temperature=0,
     max_tokens=1024,
     streaming=True,
-tools = [search]
+    tools=[search],
 )
 
 # 2. Set up the language model
@@ -69,15 +73,18 @@ def should_continue(state: MessagesState) -> str:
     return "tools" if last_message.tool_calls else END
 
 
-def call_model(state: MessagesState, config: RunnableConfig) -> dict[str, BaseMessage]:
+def call_model(
+    state: MessagesState, config: RunnableConfig
+) -> dict[str, BaseMessage]:
     """Calls the language model and returns the response."""
     # system_message = "You are a helpful AI assistant."
     system_message = prompts.initial_routing_prompt()
     system_message = "You are a helpful AI assistant."
-    messages_with_system = [{"type": "system", "content": system_message}] + state[
-        "messages"
-    ]
-    # Forward the RunnableConfig object to ensure the agent is capable of streaming the response.
+    messages_with_system = [
+        {"type": "system", "content": system_message}
+    ] + state["messages"]
+    # Forward the RunnableConfig object to ensure the agent is
+    # capable of streaming the response.
     response = llm.invoke(messages_with_system, config)
     return {"messages": response}
 

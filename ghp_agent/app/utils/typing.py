@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Utility for data types
+"""
+
 import json
 import uuid
 from typing import (
@@ -37,9 +41,12 @@ class InputChat(BaseModel):
     """Represents the input for a chat session."""
 
     messages: list[
-        Annotated[HumanMessage | AIMessage | ToolMessage, Field(discriminator="type")]
+        Annotated[
+            HumanMessage | AIMessage | ToolMessage, Field(discriminator="type")
+        ]
     ] = Field(
-        ..., description="The chat messages representing the current conversation."
+        ...,
+        description="The chat messages representing the current conversation.",
     )
 
 
@@ -48,7 +55,8 @@ class Request(BaseModel):
 
     Attributes:
         input: The chat input containing messages and other chat-related data
-        config: Optional configuration for the runnable, including tags, callbacks, etc.
+        config: Optional configuration for the runnable, including tags,
+        callbacks.
     """
 
     input: InputChat
@@ -82,6 +90,7 @@ def default_serialization(obj: Any) -> Any:
     """
     if isinstance(obj, Serializable):
         return obj.to_json()
+    return None
 
 
 def dumps(obj: Any) -> str:

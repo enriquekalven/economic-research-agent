@@ -3,8 +3,9 @@
 #  agreement with Google.
 """Functions when an invalid request is made."""
 
+
 def invalid_request(
-    user_request: str,
+    # user_request: str,
 ) -> str:
     """Respond to customer and help clarify thier question.
 
@@ -15,4 +16,5 @@ def invalid_request(
         str: The response to the user
     """
     return """I am only able to generate Metro Matrix, HQ Relocation, and
-    Company Relocation reports at the moment. Can I help you create one of those?"""
+    Company Relocation reports at the moment. 
+    Can I help you create one of those?"""

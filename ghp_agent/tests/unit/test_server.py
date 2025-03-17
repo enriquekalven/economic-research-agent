@@ -51,7 +51,9 @@ def mock_google_auth_default() -> Generator[None, None, None]:
     mock_credentials = MagicMock(spec=Credentials)
     mock_project = "mock-project-id"
 
-    with patch("google.auth.default", return_value=(mock_credentials, mock_project)):
+    with patch(
+        "google.auth.default", return_value=(mock_credentials, mock_project)
+    ):
         yield
 
 
@@ -75,7 +77,10 @@ def mock_dependencies() -> Generator[None, None, None]:
     try:
         try:
             importlib.util.find_spec("app.agent.VertexAIEmbeddings")
-        except (ModuleNotFoundError, google_auth_exceptions.DefaultCredentialsError):
+        except (
+            ModuleNotFoundError,
+            google_auth_exceptions.DefaultCredentialsError,
+        ):
             pass
         else:
             patches.append(patch("app.agent.VertexAIEmbeddings"))
@@ -116,13 +121,21 @@ async def test_stream_chat_events() -> None:
             "messages": [
                 {"type": "human", "content": "Hello, AI!"},
                 {"type": "ai", "content": "Hello!"},
-                {"type": "human", "content": "What cooking recipes do you suggest?"},
+                {
+                    "type": "human",
+                    "content": "What cooking recipes do you suggest?",
+                },
             ],
         },
-        "config": {"metadata": {"user_id": "test-user", "session_id": "test-session"}},
+        "config": {
+            "metadata": {"user_id": "test-user", "session_id": "test-session"}
+        },
     }
 
-    mock_events = [{"content": "Mocked response"}, {"content": "Additional response"}]
+    mock_events = [
+        {"content": "Mocked response"},
+        {"content": "Additional response"},
+    ]
 
     with patch("app.server.agent") as mock_agent:
         mock_agent.stream.return_value = mock_events

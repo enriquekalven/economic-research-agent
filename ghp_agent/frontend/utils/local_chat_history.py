@@ -51,7 +51,10 @@ class LocalChatMessageHistory(BaseChatMessageHistory):
                 file_path = os.path.join(self.user_dir, filename)
                 with open(file_path) as f:
                     conversation = yaml.safe_load(f)
-                    if not isinstance(conversation, list) or len(conversation) > 1:
+                    if (
+                        not isinstance(conversation, list)
+                        or len(conversation) > 1
+                    ):
                         raise ValueError(
                             f"""Invalid format in {file_path}.
                         YAML file can only contain one conversation with the following
@@ -65,7 +68,10 @@ class LocalChatMessageHistory(BaseChatMessageHistory):
                         conversation["title"] = filename
                 conversations[filename[:-5]] = conversation
         return dict(
-            sorted(conversations.items(), key=lambda x: x[1].get("update_time", ""))
+            sorted(
+                conversations.items(),
+                key=lambda x: x[1].get("update_time", ""),
+            )
         )
 
     def upsert_session(self, session: dict) -> None:
@@ -107,7 +113,8 @@ class LocalChatMessageHistory(BaseChatMessageHistory):
             messages = [
                 msg
                 for msg in messages
-                if msg["type"] in ("ai", "human") and isinstance(msg["content"], str)
+                if msg["type"] in ("ai", "human")
+                and isinstance(msg["content"], str)
             ]
 
             response = chain_title.invoke(messages)

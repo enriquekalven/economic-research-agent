@@ -7,7 +7,7 @@ import pandas as pd
 from google.cloud import bigquery
 from typing import Optional
 
-from app.utils.models import MetroMatrix, MetroMatrixResult
+from app.utils.models import MetroMatrixResult
 from langchain_core.tools import tool
 
 DATA_AXLE = "ghp-poc.jobseq.data_axle"
@@ -92,8 +92,9 @@ def find_metro_matrix(
     query_df: pd.DataFrame = query_job.to_dataframe()
     return query_df
 
-    city_analysis = [
-        MetroMatrix.model_validate(row.to_dict()) for idx, row in query_df.iterrows()
-    ]
+    # city_analysis = [
+    #     MetroMatrix.model_validate(row.to_dict())
+    #     for idx, row in query_df.iterrows()
+    # ]
 
-    return MetroMatrixResult(city_analysis=city_analysis)
+    # return MetroMatrixResult(city_analysis=city_analysis)

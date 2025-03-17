@@ -17,7 +17,7 @@ PROJECT_ID = "ghp-poc"
 @tool
 def find_company_relocation(
     city_name: str,
-    industry: Optional[str] = None,
+    # industry: Optional[str] = None,
     state_name: Optional[str] = None,
 ) -> CompanyRelocationResult:
     """Search for Company Relocation Data.

@@ -17,7 +17,7 @@ PROJECT_ID = "ghp-poc"
 @tool
 def find_hq_relocation(
     city_name: str,
-    industry: Optional[str] = None,
+    # industry: Optional[str] = None,
     state_name: Optional[str] = None,
 ) -> HQRelocationResult:
     """Search for Company Headquarters Relocation Data.
@@ -96,7 +96,8 @@ def find_hq_relocation(
     query_df: pd.DataFrame = query_job.to_dataframe()
 
     city_analysis = [
-        HQRelocation.model_validate(row.to_dict()) for idx, row in query_df.iterrows()
+        HQRelocation.model_validate(row.to_dict())
+        for idx, row in query_df.iterrows()
     ]
 
     return HQRelocationResult(city_analysis=city_analysis)

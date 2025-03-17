@@ -30,7 +30,8 @@ def test_agent_stream() -> None:
     }
 
     events = [
-        message for message, _ in agent.stream(input_dict, stream_mode="messages")
+        message
+        for message, _ in agent.stream(input_dict, stream_mode="messages")
     ]
 
     # Verify we get a reasonable number of messages

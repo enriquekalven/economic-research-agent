@@ -40,7 +40,10 @@ class ChatStreamUser(HttpUser):
                 ]
             },
             "config": {
-                "metadata": {"user_id": "test-user", "session_id": "test-session"}
+                "metadata": {
+                    "user_id": "test-user",
+                    "session_id": "test-session",
+                }
             },
         }
 
@@ -82,4 +85,6 @@ class ChatStreamUser(HttpUser):
                                 return
                 response.failure("No valid response content received")
             else:
-                response.failure(f"Unexpected status code: {response.status_code}")
+                response.failure(
+                    f"Unexpected status code: {response.status_code}"
+                )

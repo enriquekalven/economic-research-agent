@@ -56,8 +56,12 @@ def patch_clients(
     mock_logging_client: Mock, mock_storage_client: Mock
 ) -> Generator[None, None, None]:
     """Patch the logging and storage clients."""
-    with patch("google.cloud.logging.Client", return_value=mock_logging_client):
-        with patch("google.cloud.storage.Client", return_value=mock_storage_client):
+    with patch(
+        "google.cloud.logging.Client", return_value=mock_logging_client
+    ):
+        with patch(
+            "google.cloud.storage.Client", return_value=mock_storage_client
+        ):
             yield
 
 
@@ -124,7 +128,8 @@ def test_process_large_attributes_large_payload(
 
 @patch.object(CloudTraceLoggingSpanExporter, "_process_large_attributes")
 def test_export(
-    mock_process_large_attributes: Mock, exporter: CloudTraceLoggingSpanExporter
+    mock_process_large_attributes: Mock,
+    exporter: CloudTraceLoggingSpanExporter,
 ) -> None:
     """Test the export method of CloudTraceLoggingSpanExporter."""
     mock_span = Mock(spec=ReadableSpan)

@@ -61,4 +61,4 @@ linting:
         - when: never
     script:
         - pip install pylint==2.8.3
-        - pylint --jobs=0 $(git ls-files '*.py')
+        - pylint --jobs=0 app/

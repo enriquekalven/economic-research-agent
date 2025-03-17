@@ -45,7 +45,9 @@ def get_remote_agent(remote_agent_engine_id: str) -> Any:
 
 
 @st.cache_resource
-def get_remote_url_config(url: str, authenticate_request: bool) -> dict[str, Any]:
+def get_remote_url_config(
+    url: str, authenticate_request: bool
+) -> dict[str, Any]:
     """Get cached remote URL agent configuration."""
     stream_url = urljoin(url, "stream_messages")
     creds, _ = google.auth.default()
@@ -53,7 +55,9 @@ def get_remote_url_config(url: str, authenticate_request: bool) -> dict[str, Any
     if authenticate_request:
         auth_req = google.auth.transport.requests.Request()
         try:
-            id_token = google.oauth2.id_token.fetch_id_token(auth_req, stream_url)
+            id_token = google.oauth2.id_token.fetch_id_token(
+                auth_req, stream_url
+            )
         except DefaultCredentialsError:
             creds.refresh(auth_req)
             id_token = creds.id_token
@@ -132,7 +136,10 @@ class Client:
             if self.authenticate_request:
                 headers["Authorization"] = f"Bearer {self.id_token}"
             requests.post(
-                url, data=json.dumps(feedback_dict), headers=headers, timeout=10
+                url,
+                data=json.dumps(feedback_dict),
+                headers=headers,
+                timeout=10,
             )
         elif self.agent is not None:
             self.agent.register_feedback(feedback=feedback_dict)
@@ -151,7 +158,11 @@ class Client:
             if self.authenticate_request:
                 headers["Authorization"] = f"Bearer {self.id_token}"
             with requests.post(
-                self.url, json={"input": data}, headers=headers, stream=True, timeout=10
+                self.url,
+                json={"input": data},
+                headers=headers,
+                stream=True,
+                timeout=10,
             ) as response:
                 for line in response.iter_lines():
                     if line:
@@ -159,7 +170,9 @@ class Client:
                             event = json.loads(line.decode("utf-8"))
                             yield event
                         except json.JSONDecodeError:
-                            print(f"Failed to parse event: {line.decode('utf-8')}")
+                            print(
+                                f"Failed to parse event: {line.decode('utf-8')}"
+                            )
         elif self.agent is not None:
             yield from self.agent.stream_query(input=data)
 
@@ -178,7 +191,9 @@ class StreamHandler:
     def new_token(self, token: str) -> None:
         """Add a new token to the main text display."""
         self.text += token
-        self.container.markdown(format_content(self.text), unsafe_allow_html=True)
+        self.container.markdown(
+            format_content(self.text), unsafe_allow_html=True
+        )
 
     def new_status(self, status_update: str) -> None:
         """Add a new status update to the tool calls expander."""
@@ -189,7 +204,9 @@ class StreamHandler:
 class EventProcessor:
     """Processes events from the stream and updates the UI accordingly."""
 
-    def __init__(self, st: Any, client: Client, stream_handler: StreamHandler) -> None:
+    def __init__(
+        self, st: Any, client: Client, stream_handler: StreamHandler
+    ) -> None:
         """Initialize the EventProcessor with Streamlit context, client, and stream handler."""
         self.st = st
         self.client = client
@@ -228,7 +245,9 @@ class EventProcessor:
                     # Handle tool calls
                     if message.get("tool_calls"):
                         tool_calls = message["tool_calls"]
-                        ai_message = AIMessage(content="", tool_calls=tool_calls)
+                        ai_message = AIMessage(
+                            content="", tool_calls=tool_calls
+                        )
                         self.tool_calls.append(ai_message.model_dump())
                         for tool_call in tool_calls:
                             msg = f"\n\nCalling tool: `{tool_call['name']}` with args: `{tool_call['args']}`"
@@ -239,7 +258,9 @@ class EventProcessor:
                         content = message["content"]
                         tool_call_id = message["tool_call_id"]
                         tool_message = ToolMessage(
-                            content=content, type="tool", tool_call_id=tool_call_id
+                            content=content,
+                            type="tool",
+                            tool_call_id=tool_call_id,
                         ).model_dump()
                         self.tool_calls.append(tool_message)
                         msg = f"\n\nTool response: `{content}`"
@@ -259,13 +280,18 @@ class EventProcessor:
             ).model_dump()
             session = self.st.session_state["session_id"]
             self.st.session_state.user_chats[session]["messages"] = (
-                self.st.session_state.user_chats[session]["messages"] + self.tool_calls
+                self.st.session_state.user_chats[session]["messages"]
+                + self.tool_calls
             )
-            self.st.session_state.user_chats[session]["messages"].append(final_message)
+            self.st.session_state.user_chats[session]["messages"].append(
+                final_message
+            )
             self.st.session_state.run_id = self.current_run_id
 
 
-def get_chain_response(st: Any, client: Client, stream_handler: StreamHandler) -> None:
+def get_chain_response(
+    st: Any, client: Client, stream_handler: StreamHandler
+) -> None:
     """Process the chain response update the Streamlit UI.
 
     This function initiates the event processing for a chain of operations,

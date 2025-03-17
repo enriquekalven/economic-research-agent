@@ -27,8 +27,15 @@ from frontend.side_bar import SideBar
 from frontend.style.app_markdown import MARKDOWN_STR
 from frontend.utils.local_chat_history import LocalChatMessageHistory
 from frontend.utils.message_editing import MessageEditing
-from frontend.utils.multimodal_utils import format_content, get_parts_from_files
-from frontend.utils.stream_handler import Client, StreamHandler, get_chain_response
+from frontend.utils.multimodal_utils import (
+    format_content,
+    get_parts_from_files,
+)
+from frontend.utils.stream_handler import (
+    Client,
+    StreamHandler,
+    get_chain_response,
+)
 
 USER = "my_user"
 EMPTY_CHAT_NAME = "Empty chat"
@@ -70,7 +77,9 @@ def initialize_session_state() -> None:
 
 def display_messages() -> None:
     """Display all messages in the current chat session."""
-    messages = st.session_state.user_chats[st.session_state["session_id"]]["messages"]
+    messages = st.session_state.user_chats[st.session_state["session_id"]][
+        "messages"
+    ]
     tool_calls_map = {}  # Map tool_call_id to tool call input
 
     for i, message in enumerate(messages):
@@ -86,7 +95,9 @@ def display_messages() -> None:
             if tool_call_id in tool_calls_map:
                 display_tool_output(tool_calls_map[tool_call_id], message)
             else:
-                st.error(f"Could not find tool call input for ID: {tool_call_id}")
+                st.error(
+                    f"Could not find tool call input for ID: {tool_call_id}"
+                )
         else:
             st.error(f"Unexpected message type: {message['type']}")
             st.write("Full messages list:", messages)
@@ -123,7 +134,9 @@ def display_message_buttons(
                 label="⟳",
                 key=refresh_button,
                 type="primary",
-                on_click=partial(MessageEditing.refresh_message, st, index, content),
+                on_click=partial(
+                    MessageEditing.refresh_message, st, index, content
+                ),
             )
         with col3:
             st.button(
@@ -138,7 +151,9 @@ def display_message_buttons(
             "Edit your message:",
             value=content,
             key=f"edit_box_{index}",
-            on_change=partial(MessageEditing.edit_message, st, index, message["type"]),
+            on_change=partial(
+                MessageEditing.edit_message, st, index, message["type"]
+            ),
         )
 
 
@@ -169,9 +184,9 @@ def handle_user_input(side_bar: SideBar) -> None:
         )
         st.session_state["gcs_uris_to_be_sent"] = ""
         parts.append({"type": "text", "text": prompt})
-        st.session_state.user_chats[st.session_state["session_id"]]["messages"].append(
-            HumanMessage(content=parts).model_dump()
-        )
+        st.session_state.user_chats[st.session_state["session_id"]][
+            "messages"
+        ].append(HumanMessage(content=parts).model_dump())
 
         display_user_input(parts)
         generate_ai_response(

@@ -76,7 +76,8 @@ class SideBar:
                 self.remote_agent_engine_id = self.st.text_input(
                     label="Remote Agent Engine ID",
                     value=os.environ.get(
-                        "REMOTE_AGENT_ENGINE_ID", DEFAULT_REMOTE_AGENT_ENGINE_ID
+                        "REMOTE_AGENT_ENGINE_ID",
+                        DEFAULT_REMOTE_AGENT_ENGINE_ID,
                     ),
                 )
                 self.agent_callable_path = None
@@ -130,7 +131,9 @@ class SideBar:
                         self.st.session_state["session_id"]
                     )
                     if len(self.st.session_state.user_chats) > 0:
-                        chat_id = list(self.st.session_state.user_chats.keys())[0]
+                        chat_id = list(
+                            self.st.session_state.user_chats.keys()
+                        )[0]
                         self.st.session_state["session_id"] = chat_id
                         self.st.session_state.session_db.get_session(
                             session_id=self.st.session_state["session_id"],
@@ -149,7 +152,9 @@ class SideBar:
 
             self.st.subheader("Recent")  # Style the heading
 
-            all_chats = list(reversed(self.st.session_state.user_chats.items()))
+            all_chats = list(
+                reversed(self.st.session_state.user_chats.items())
+            )
             for chat_id, chat in all_chats[:NUM_CHAT_IN_RECENT]:
                 if self.st.button(chat["title"], key=chat_id):
                     self.st.session_state.run_id = None
@@ -177,7 +182,9 @@ class SideBar:
                 self.st.session_state.checkbox_state = True
 
             self.st.session_state.checkbox_state = self.st.checkbox(
-                "Upload to GCS first (suggested)", value=False, help=HELP_GCS_CHECKBOX
+                "Upload to GCS first (suggested)",
+                value=False,
+                help=HELP_GCS_CHECKBOX,
             )
 
             self.uploaded_files = self.st.file_uploader(

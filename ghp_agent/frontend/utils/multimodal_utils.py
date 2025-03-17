@@ -195,11 +195,15 @@ def gs_uri_to_https_url(gs_uri: str) -> str:
     object_name = quote(object_name)
 
     # Construct the HTTPS URL
-    https_url = f"https://storage.mtls.cloud.google.com/{bucket_name}/{object_name}"
+    https_url = (
+        f"https://storage.mtls.cloud.google.com/{bucket_name}/{object_name}"
+    )
     return https_url
 
 
-def upload_files_to_gcs(st: Any, bucket_name: str, files_to_upload: list[Any]) -> None:
+def upload_files_to_gcs(
+    st: Any, bucket_name: str, files_to_upload: list[Any]
+) -> None:
     """Upload multiple files to Google Cloud Storage and store URIs in session state."""
     bucket_name = bucket_name.replace("gs://", "")
     uploaded_uris = []

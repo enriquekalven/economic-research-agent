@@ -125,7 +125,9 @@ def test_chat_stream(server_fixture: subprocess.Popen[str]) -> None:
                 {"type": "human", "content": "What is the weather in NY?"},
             ]
         },
-        "config": {"metadata": {"user_id": "test-user", "session_id": "test-session"}},
+        "config": {
+            "metadata": {"user_id": "test-user", "session_id": "test-session"}
+        },
     }
 
     response = requests.post(
@@ -151,26 +153,33 @@ def test_chat_stream(server_fixture: subprocess.Popen[str]) -> None:
     has_content = False
     for event in events:
         message = event[0]
-        if message.get("type") == "constructor" and "content" in message["kwargs"]:
+        if (
+            message.get("type") == "constructor"
+            and "content" in message["kwargs"]
+        ):
             has_content = True
             break
     assert has_content, "At least one message should have content"
 
 
-def test_chat_stream_error_handling(server_fixture: subprocess.Popen[str]) -> None:
+def test_chat_stream_error_handling(
+    server_fixture: subprocess.Popen[str],
+) -> None:
     """Test the chat stream error handling."""
     logger.info("Starting chat stream error handling test")
 
     data = {
-        "input": {"messages": [{"type": "invalid_type", "content": "Cause an error"}]}
+        "input": {
+            "messages": [{"type": "invalid_type", "content": "Cause an error"}]
+        }
     }
     response = requests.post(
         STREAM_URL, headers=HEADERS, json=data, stream=True, timeout=10
     )
 
-    assert response.status_code == 422, (
-        f"Expected status code 422, got {response.status_code}"
-    )
+    assert (
+        response.status_code == 422
+    ), f"Expected status code 422, got {response.status_code}"
     logger.info("Error handling test completed successfully")
 
 

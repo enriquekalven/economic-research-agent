@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+REST endpoints defined here
+"""
+
 import logging
 import os
 from collections.abc import Generator
@@ -24,7 +28,13 @@ from traceloop.sdk import Instruments, Traceloop
 
 from app.agent import agent
 from app.utils.tracing import CloudTraceLoggingSpanExporter
-from app.utils.typing import Feedback, InputChat, Request, dumps, ensure_valid_config
+from app.utils.typing import (
+    Feedback,
+    InputChat,
+    Request,
+    dumps,
+    ensure_valid_config,
+)
 
 # Initialize FastAPI app and logging
 app = FastAPI(
@@ -64,13 +74,13 @@ def set_tracing_properties(config: RunnableConfig) -> None:
 
 
 def stream_messages(
-    input: InputChat,
+    user_input: InputChat,
     config: RunnableConfig | None = None,
 ) -> Generator[str, None, None]:
     """Stream events in response to an input chat.
 
     Args:
-        input: The input chat messages
+        user_input: The input chat messages
         config: Optional configuration for the runnable
 
     Yields:
@@ -78,9 +88,11 @@ def stream_messages(
     """
     config = ensure_valid_config(config=config)
     set_tracing_properties(config)
-    input_dict = input.model_dump()
+    input_dict = user_input.model_dump()
 
-    for data in agent.stream(input_dict, config=config, stream_mode="messages"):
+    for data in agent.stream(
+        input_dict, config=config, stream_mode="messages"
+    ):
         yield dumps(data) + "\n"
 
 
@@ -116,7 +128,7 @@ def stream_chat_events(request: Request) -> StreamingResponse:
         Streaming response of chat events
     """
     return StreamingResponse(
-        stream_messages(input=request.input, config=request.config),
+        stream_messages(user_input=request.input, config=request.config),
         media_type="text/event-stream",
     )
 
