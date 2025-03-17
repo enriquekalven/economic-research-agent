@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ruff: noqa: RUF015
+"""
+Side bar utilities
+"""
+
+# pylint: disable=unspecified-encoding
 import json
 import os
 import uuid
@@ -91,10 +95,11 @@ class SideBar:
                 self.should_authenticate_request = self.st.checkbox(
                     label="Authenticate request",
                     value=False,
-                    help="If checked, any request to the server will contain an"
-                    "Identity token to allow authentication. "
-                    "See the Cloud Run documentation to know more about authentication:"
-                    "https://cloud.google.com/run/docs/authenticating/service-to-service",
+                    help="""If checked, any request to the server will
+                    contain an Identity token to allow authentication. 
+                    See the Cloud Run documentation to know more about 
+                    authentication
+                    """,
                 )
                 self.agent_callable_path = None
                 self.remote_agent_engine_id = None

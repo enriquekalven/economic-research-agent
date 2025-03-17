@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Styling for streamlit UI
+"""
+
 MARKDOWN_STR = """
 <style>
 button[kind="primary"] {

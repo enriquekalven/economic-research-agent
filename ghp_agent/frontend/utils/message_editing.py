@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Utility for Editing a previous chat Message
+"""
+
 # fmt: off
 
 from typing import Any
@@ -25,7 +29,8 @@ class MessageEditing:
         """Edit a message in the chat history."""
         button_id = f"edit_box_{button_idx}"
         if message_type == "human":
-            messages = st.session_state.user_chats[st.session_state["session_id"]][
+            messages = st.session_state.user_chats[
+                st.session_state["session_id"]][
                 "messages"
             ]
             st.session_state.user_chats[st.session_state["session_id"]][
@@ -33,7 +38,8 @@ class MessageEditing:
             ] = messages[:button_idx]
             st.session_state.modified_prompt = st.session_state[button_id]
         else:
-            st.session_state.user_chats[st.session_state["session_id"]]["messages"][
+            st.session_state.user_chats[
+                st.session_state["session_id"]]["messages"][
                 button_idx
             ]["content"] = st.session_state[button_id]
 

@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Main Streamlit utility for Tracking chat over sessions
+"""
+
+# pylint: disable=inconsistent-quotes,line-too-long
 # mypy: disable-error-code="unreachable"
 import importlib
 import json
@@ -180,9 +185,10 @@ class Client:
 class StreamHandler:
     """Handles streaming updates to a Streamlit interface."""
 
-    def __init__(self, st: Any, initial_text: str = "") -> None:
-        """Initialize the StreamHandler with Streamlit context and initial text."""
-        self.st = st
+    def __init__(self, stm: Any, initial_text: str = "") -> None:
+        """Initialize the StreamHandler with Streamlit
+        context and initial text."""
+        self.st = stm
         self.tool_expander = st.expander("Tool Calls:", expanded=False)
         self.container = st.empty()
         self.text = initial_text
@@ -205,10 +211,11 @@ class EventProcessor:
     """Processes events from the stream and updates the UI accordingly."""
 
     def __init__(
-        self, st: Any, client: Client, stream_handler: StreamHandler
+        self, stm: Any, client: Client, stream_handler: StreamHandler
     ) -> None:
-        """Initialize the EventProcessor with Streamlit context, client, and stream handler."""
-        self.st = st
+        """Initialize the EventProcessor with Streamlit context,
+        client, and stream handler."""
+        self.st = stm
         self.client = client
         self.stream_handler = stream_handler
         self.final_content = ""
@@ -217,7 +224,8 @@ class EventProcessor:
         self.additional_kwargs: dict[str, Any] = {}
 
     def process_events(self, run_id: str | None = None) -> None:
-        """Process events from the stream, handling each event type appropriately."""
+        """Process events from the stream,
+        handling each event type appropriately."""
         messages = self.st.session_state.user_chats[
             self.st.session_state["session_id"]
         ]["messages"]
@@ -236,7 +244,7 @@ class EventProcessor:
                 },
             }
         )
-        # Each event is a tuple message, metadata. https://langchain-ai.github.io/langgraph/how-tos/streaming/#messages
+
         for message, _ in stream:
             if isinstance(message, dict):
                 if message.get("type") == "constructor":
@@ -290,7 +298,7 @@ class EventProcessor:
 
 
 def get_chain_response(
-    st: Any, client: Client, stream_handler: StreamHandler
+    stm: Any, client: Client, stream_handler: StreamHandler
 ) -> None:
     """Process the chain response update the Streamlit UI.
 
@@ -299,7 +307,7 @@ def get_chain_response(
     It creates an EventProcessor instance and starts the event processing loop.
 
     Args:
-        st (Any): The Streamlit app instance, used for accessing session state
+        stm (Any): The Streamlit app instance,used for accessing session state
                  and updating the UI.
         client (Client): An instance of the Client class used to stream events
                         from the server.
@@ -311,9 +319,12 @@ def get_chain_response(
         None
 
     Side effects:
-        - Updates the Streamlit UI with streaming tokens and tool call information.
-        - Modifies the session state to include the final AI message and run ID.
-        - Handles various events like chain starts/ends, tool calls, and model outputs.
+        - Updates the Streamlit UI with streaming tokens and
+          tool call information.
+        - Modifies the session state to include the final AI
+          message and run ID.
+        - Handles various events like chain starts/ends, tool calls,
+          and model outputs.
     """
-    processor = EventProcessor(st, client, stream_handler)
+    processor = EventProcessor(stm, client, stream_handler)
     processor.process_events()

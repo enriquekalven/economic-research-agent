@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# pylint: skip-file
+
 from collections.abc import Generator
 from typing import Any
 from unittest.mock import Mock, patch

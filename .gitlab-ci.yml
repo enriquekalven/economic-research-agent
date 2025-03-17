@@ -12,7 +12,7 @@ stages:
 
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:3.9.6
+image: python:3.11
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -37,7 +37,7 @@ before_script:
 
 # Job to run if there's nothing to lint or test.
 noop:
-    image: alpine:3.7
+    image: alpine:3.11
     stage: lint
     rules:
         - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -60,5 +60,5 @@ linting:
           when: on_success
         - when: never
     script:
-        - pip install pylint==2.8.3
+        - pip install pylint==3.3
         - pylint --jobs=0 $(git ls-files '*.py')

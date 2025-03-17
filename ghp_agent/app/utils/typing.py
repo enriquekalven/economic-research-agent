@@ -16,6 +16,7 @@
 Utility for data types
 """
 
+# pylint: disable=unsupported-binary-operation
 import json
 import uuid
 from typing import (

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Utility to Generate Title from Chat context
+"""
+
 # mypy: disable-error-code="assignment"
 import os
 from typing import Any
@@ -25,12 +29,16 @@ title_template = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """Given a list of messages between a human and AI, come up with a short and relevant title for the conversation. Use up to 10 words. The title needs to be concise.
+            """Given a list of messages between a human and AI, 
+            come up with a short and relevant title for the conversation. 
+            Use up to 10 words. The title needs to be concise.
 Examples:
 **Input:**
 ```
 Human: hi, what is the best italian dish?
-AI: That's a tough one! Italy has so many amazing dishes, it's hard to pick just one "best." To help me give you a great suggestion, tell me a little more about what you're looking for.
+AI: That's a tough one! Italy has so many amazing dishes, it's 
+hard to pick just one "best." To help me give you a great suggestion, 
+tell me a little more about what you're looking for.
 ```
 **Output:** Best italian dish
 
@@ -38,7 +46,9 @@ AI: That's a tough one! Italy has so many amazing dishes, it's hard to pick just
 
 ```
 Human: How to fix a broken laptop screen?
-AI: Fixing a broken laptop screen can be tricky and often requires professional help. However, there are a few things you can try at home before resorting to a repair shop.
+AI: Fixing a broken laptop screen can be tricky and often requires 
+professional help. However, there are a few things you can try at home 
+before resorting to a repair shop.
 ```
 
 **Output:** Fixing a broken laptop screen
@@ -59,12 +69,14 @@ And feel its power evermore.
 
 ```
 Human: What's the best way to learn to code?
-AI: There are many ways to learn to code, and the best method for you will depend on your learning style and goals.
+AI: There are many ways to learn to code, and the best method for you will
+ depend on your learning style and goals.
 ```
 
 **Output:** How to learn to code
 
-If there's not enough context in the conversation to create a meaningful title, create a generic title like "New Conversation", or "A simple greeting".
+If there's not enough context in the conversation to create a meaningful title,
+create a generic title like "New Conversation", or "A simple greeting".
 
 """,
         ),
@@ -88,7 +100,8 @@ except Exception:
     print("WARNING: Failed to initialize Vertex AI. Using dummy LLM instead.")
 
     class DummyChain:
-        def invoke(*args: Any, **kwargs: Any) -> AIMessage:
+        def invoke(self, *args: Any, **kwargs: Any) -> AIMessage:
+            print(args, kwargs)
             return AIMessage(content="conversation")
 
     chain_title = DummyChain()

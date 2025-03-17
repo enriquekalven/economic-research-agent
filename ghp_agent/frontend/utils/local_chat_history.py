@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+File Based Session Management
+"""
+
+# pylint: disable=unspecified-encoding
 import os
 from datetime import datetime
 

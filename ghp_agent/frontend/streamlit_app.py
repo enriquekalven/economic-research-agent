@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+main streamlit file
+"""
+
+# pylint: disable=inconsistent-quotes
 # mypy: disable-error-code="arg-type"
 import json
 import uuid

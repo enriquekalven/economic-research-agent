@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Basic chat utilities
+"""
+
 import os
 from pathlib import Path
 from typing import Any
@@ -47,6 +51,7 @@ def sanitize_messages(
     return messages
 
 
+# pylint: disable=unspecified-encoding
 def save_chat(st: Any) -> None:
     """Save the current chat session to a YAML file."""
     Path(SAVED_CHAT_PATH).mkdir(parents=True, exist_ok=True)

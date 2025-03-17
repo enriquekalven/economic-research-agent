@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Utilities for Multimodal input
+"""
+
+# pylint: disable=inconsistent-quotes
 import base64
 from typing import Any
 from urllib.parse import quote
@@ -87,10 +92,12 @@ def get_gcs_blob_mime_type(gcs_uri: str) -> str | None:
     """Fetches the MIME type (content type) of a Google Cloud Storage blob.
 
     Args:
-        gcs_uri (str): The GCS URI of the blob in the format "gs://bucket-name/object-name".
+        gcs_uri (str): The GCS URI of the blob in the format
+        "gs://bucket-name/object-name".
 
     Returns:
-        str: The MIME type of the blob (e.g., "image/jpeg", "text/plain") if found,
+        str: The MIME type of the blob (e.g., "image/jpeg", "text/plain")
+             if found,
              or None if the blob does not exist or an error occurs.
     """
     storage_client = storage.Client()
@@ -110,7 +117,8 @@ def get_gcs_blob_mime_type(gcs_uri: str) -> str | None:
 def get_parts_from_files(
     upload_gcs_checkbox: bool, uploaded_files: list[Any], gcs_uris: str
 ) -> list[dict[str, Any]]:
-    """Processes uploaded files and GCS URIs to create a list of content parts."""
+    """Processes uploaded files and GCS URIs to create a
+    list of content parts."""
     parts = []
     # read from local directly
     if not upload_gcs_checkbox:
@@ -204,7 +212,8 @@ def gs_uri_to_https_url(gs_uri: str) -> str:
 def upload_files_to_gcs(
     st: Any, bucket_name: str, files_to_upload: list[Any]
 ) -> None:
-    """Upload multiple files to Google Cloud Storage and store URIs in session state."""
+    """Upload multiple files to Google Cloud Storage and
+    store URIs in session state."""
     bucket_name = bucket_name.replace("gs://", "")
     uploaded_uris = []
     for file in files_to_upload:
