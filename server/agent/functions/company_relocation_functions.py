@@ -4,9 +4,10 @@
 """Functions supporting company relocation workflow."""
 
 import pandas as pd
-from server.agent.models import CompanyRelocation, CompanyRelocationResult
 from google.cloud import bigquery
 from typing import Optional
+
+from server.agent.models import CompanyRelocation, CompanyRelocationResult
 
 DATA_AXLE = "ghp-poc.jobseq.data_axle"
 PROJECT_ID = "ghp-poc"
