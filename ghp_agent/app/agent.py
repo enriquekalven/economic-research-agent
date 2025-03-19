@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Main definition of agent workflow
+Main definition of agent workflow.
 """
 
 # mypy: disable-error-code="union-attr"
@@ -24,9 +24,11 @@ from langchain_google_vertexai import ChatVertexAI
 from langgraph.graph import END, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 
+from app.tools.bls_functions import find_labor_force_stats
 from app.tools.company_relocation_functions import find_company_relocation
 from app.tools.hq_relocation_functions import find_hq_relocation
 from app.tools.metro_matrix_functions import find_metro_matrix
+
 from app.utils.prompts import Prompts
 
 LOCATION = "us-central1"
@@ -41,8 +43,12 @@ def search(query: str) -> str:
         return "It's 60 degrees and foggy."
     return "It's 90 degrees and sunny."
 
-
-tools = [find_company_relocation, find_hq_relocation, find_metro_matrix]
+tools = [
+    find_company_relocation,
+    find_hq_relocation,
+    find_labor_force_stats,
+    find_metro_matrix
+]
 
 # 2. Set up the language model
 prompts = Prompts()  # Instantiate Prompts
@@ -77,15 +83,17 @@ def call_model(
     return {"messages": response}
 
 
-# 4. Create the workflow graph
+# 4. Create the workflow graph.
 workflow = StateGraph(MessagesState)
 workflow.add_node("agent", call_model)
 workflow.add_node("tools", ToolNode(tools))
 workflow.set_entry_point("agent")
 
-# 5. Define graph edges
+
+# 5. Define graph edges.
 workflow.add_conditional_edges("agent", should_continue)
 workflow.add_edge("tools", "agent")
 
-# 6. Compile the workflow
+
+# 6. Compile the workflow.
 agent = workflow.compile()
