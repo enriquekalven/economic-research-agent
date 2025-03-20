@@ -90,6 +90,7 @@ def stream_messages(
     config = ensure_valid_config(config=config)
     set_tracing_properties(config)
     input_dict = user_input.model_dump()
+    print(input_dict)
 
     for data in agent.stream(
         input_dict, config=config, stream_mode="messages"

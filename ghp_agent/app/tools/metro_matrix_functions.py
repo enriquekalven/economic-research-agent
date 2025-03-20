@@ -3,6 +3,7 @@
 #  agreement with Google.
 """Functions supporting company relocation workflow."""
 
+import concurrent.futures
 import json
 import logging
 from typing import Any, Dict, List, Tuple
@@ -41,7 +42,8 @@ def find_metro_matrix(
 ) -> Tuple[pd.DataFrame, set]:
     """Search for overall metro data for each specified city.
 
-    Use the user's session to determine if you already know the cities the user is looking for.
+    Use the user's session to determine if you already know the cities
+    the user is looking for.
 
     Args:
         metro_areas (List[Dict[str, Any]]): A list of dictionaries
@@ -60,27 +62,27 @@ def find_metro_matrix(
     """
     city_names = [f"{area.get('city_name')}" for area in metro_areas]
 
-    # Get Forbes best business rankings.
-    forbes_ratings, search_citations = search_google_for_forbes(
-        city_names=city_names)
+    # Parallelize functions needed for metro matrix.
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(search_google_for_forbes, city_names): "forbes",
+            executor.submit(get_labor_force_stats, city_names): "labor",
+            executor.submit(get_state_tax_rates, metro_areas): "tax",
+            executor.submit(get_median_hourly_wage, city_names): "wage",
+            executor.submit(get_union_employment, metro_areas): "union",
+        }
 
-    # Get Labor Force & Unemployement stats.
-    labor_force_stats, labor_force_citations = get_labor_force_stats(
-        city_names=city_names)
+        results = {}
+        for future in concurrent.futures.as_completed(futures):
+            key = futures[future]
+            results[key] = future.result()
 
-    # Get State Tax rates.
-    state_tax, state_tax_citations = get_state_tax_rates(
-        metros=metro_areas)
-
-
-    # Get median hourly wages by cities.
-    median_hourly_wages, median_hourly_citations = get_median_hourly_wage(
-        city_names=city_names)
-
-    # Union employment.
-    state_union_employment, union_citations = get_union_employment(
-        metros=metro_areas)
-
+    # Get results.
+    forbes_ratings, search_citations = results["forbes"]
+    labor_force_stats, labor_force_citations = results["labor"]
+    state_tax, state_tax_citations = results["tax"]
+    median_hourly_wages, median_hourly_citations = results["wage"]
+    state_union_employment, union_citations = results["union"]
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
@@ -106,7 +108,6 @@ def find_metro_matrix(
     )
 
     metro_matrix = format_metro_matrix_data(merged_df)
-
     return metro_matrix, citations
 
 
@@ -121,6 +122,19 @@ def format_metro_matrix_data(
     Returns:
         Dataframe to display to user for metro matrix.
     """
+    # Rename columns to match template.
+    col_rename_mapping = {
+        "forbes_ranking": "Forbes Best Places for Business",
+        "labor_force": "Labor Force, not seasonally-adjusted",
+        "unemployment_rate": "Unemployment Rate",
+        "median_hourly_wage": "Median Hourly Wage -All Occupations ($)",
+        "tax_rate": "State Corporate Income Tax Rates (Maximum)",
+        "union_employed": "Union Members, Percent of Employed (State)"
+    }
+
+    df.rename(
+        columns=col_rename_mapping, inplace=True)
+
     df.set_index("city_name", inplace= True)
     return df.T
 

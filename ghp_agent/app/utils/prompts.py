@@ -28,7 +28,6 @@ class Prompts:
         Else, if none of your tools will fulfill the query then use invalid_request.
 
         When the user asks for information about a location, they must provide the city name. If the user specified a state, use the state's two letter abreviation for the function call. If the query requires an industry, clarify the industry if needed.
-        For when a user specifies a city, determine which state it is in. Else if you are not sure ask follow up questions to clarify which state. 
 
         If a user request is ambiguous, ask clarifying questions to determine the exact function and parameters needed. Do not make assumptions about missing information.
 
