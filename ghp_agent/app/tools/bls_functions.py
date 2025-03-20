@@ -111,6 +111,6 @@ def find_state_tax_rate(
         state_tax_rate_df, state_tax_citations = get_state_tax_rates(
             metros=metros, drop_state=False)
     except Exception as e:
-        print(e)
+        return(e)
 
     return state_tax_rate_df, state_tax_citations
