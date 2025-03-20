@@ -42,8 +42,8 @@ def find_metro_matrix(
 ) -> Tuple[pd.DataFrame, set]:
     """Search for overall metro data for each specified city.
 
-    Use the user's session to determine if you already know the cities
-    the user is looking for.
+    Use the user's session to determine if you already know
+    the cities the user is looking for.
 
     Args:
         metro_areas (List[Dict[str, Any]]): A list of dictionaries
