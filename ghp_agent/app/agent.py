@@ -26,7 +26,9 @@ from langgraph.prebuilt import ToolNode
 
 from app.tools.bls_functions import (
     find_labor_force_stats,
-    find_median_hourly_wages
+    find_median_hourly_wages,
+    find_state_tax_rate,
+    find_state_union_employment
 )
 from app.tools.company_relocation_functions import find_company_relocation
 from app.tools.hq_relocation_functions import find_hq_relocation
@@ -51,7 +53,9 @@ tools = [
     find_hq_relocation,
     find_labor_force_stats,
     find_median_hourly_wages,
-    find_metro_matrix
+    find_metro_matrix,
+    find_state_tax_rate,
+    find_state_union_employment
 ]
 
 # 2. Set up the language model

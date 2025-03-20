@@ -29,8 +29,7 @@ def get_labor_force_stats(
     SELECT
         area_name,
         labor_force,
-        unemployment_rate,
-        date,
+        CONCAT(unemployment_rate, '% (', date, ')') AS unemployment_rate,
         source
     FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{labor_force_table}`
     WHERE REGEXP_CONTAINS(
@@ -67,7 +66,8 @@ def get_labor_force_stats(
 
 
 def get_state_tax_rates(
-    metros: List[Dict[str,Any]]
+    metros: List[Dict[str,Any]],
+    drop_state: bool = True
 ):
     """Get State Tax Rates"""
     state_tax_table = "state_tax_rates"
@@ -78,7 +78,9 @@ def get_state_tax_rates(
 
     state_tax_query = f"""
     SELECT
-        *
+        state,
+        CONCAT(tax_rate, '% (', year, ')') AS tax_rate,
+        source
     FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{state_tax_table}`
     WHERE {column_name_to_match} IN UNNEST({states})
     """
@@ -100,13 +102,66 @@ def get_state_tax_rates(
     # Citations.
     citations = set(state_tax_bq_results["source"].unique())
 
+    labels_to_drop = ["source"]
+    if drop_state:
+        labels_to_drop.extend(["state", "state_abbreviation"])
+
     state_tax_df.drop(
-        labels=["source", "state_abbreviation", "state"],
+        labels=labels_to_drop,
         axis=1,
         inplace=True
     )
 
     return state_tax_df, citations
+
+
+def get_union_employment(
+    metros: List[Dict[str,Any]],
+    drop_state: bool = True
+):
+    """Get Union Employment Percentage"""
+    union_table = "union_employed"
+
+    states = [metro.get("state", "") for metro in metros]
+
+    column_name_to_match = "state"
+
+    union_employement_query = f"""
+    SELECT
+        state,
+        CONCAT(union_employed, '% (', year, ')') AS union_employed,
+        source
+    FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{union_table}`
+    WHERE {column_name_to_match} IN UNNEST({states})
+    """
+
+    state_union_employement = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=union_employement_query
+    )
+
+    metro_df = pd.DataFrame(metros)
+
+    union_employment_df = pd.merge(
+        left=state_union_employement,
+        right=metro_df,
+        on="state",
+        how="left"
+    )
+
+    # Citations.
+    citations = set(state_union_employement["source"].unique())
+
+    labels_to_drop = ["source"]
+    if drop_state:
+        labels_to_drop.extend(["state", "state_abbreviation"])
+    union_employment_df.drop(
+        labels=labels_to_drop,
+        axis=1,
+        inplace=True
+    )
+
+    return union_employment_df, citations
 
 
 def get_median_hourly_wage(
