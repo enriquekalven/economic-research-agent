@@ -13,6 +13,7 @@ import pandas as pd
 
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
+    get_median_hourly_wage,
     get_state_tax_rates
 )
 from app.tools.common.gemini_sdk import GeminiSDKManager
@@ -38,6 +39,8 @@ def find_metro_matrix(
     metro_areas: List[Dict[str, Any]],
 ) -> Tuple[pd.DataFrame, set]:
     """Search for overall metro data for each specified city.
+
+    Use the user's session to determine if you already know the cities the user is looking for.
 
     Args:
         metro_areas (List[Dict[str, Any]]): A list of dictionaries
@@ -69,9 +72,15 @@ def find_metro_matrix(
         metros=metro_areas)
 
 
+    # Get median hourly wages by cities.
+    median_hourly_wages, median_hourly_citations = get_median_hourly_wage(
+        city_names=city_names)
+
+
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
         labor_force_citations,
+        median_hourly_citations,
         search_citations,
         state_tax_citations
     )
@@ -82,6 +91,7 @@ def find_metro_matrix(
         df_list=[
             forbes_ratings,
             labor_force_stats,
+            median_hourly_wages,
             state_tax
         ],
         how="left",
@@ -138,7 +148,6 @@ def search_google_for_forbes(
     search_citations = model.get_url_citations(
         response=grounded_search_response)
 
-
     # Format raw search text response to a JSON.
     # Controlled generation schema.
     rankings_output_schema = {
@@ -170,7 +179,7 @@ def search_google_for_forbes(
         ).text
     )
 
-    # Dictionary to store results.
+    # List to store results.
     cities_forbes_rankings = []
 
     # Loop through each formatted city with it's ranking.

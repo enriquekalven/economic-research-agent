@@ -24,7 +24,10 @@ from langchain_google_vertexai import ChatVertexAI
 from langgraph.graph import END, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
 
-from app.tools.bls_functions import find_labor_force_stats
+from app.tools.bls_functions import (
+    find_labor_force_stats,
+    find_median_hourly_wages
+)
 from app.tools.company_relocation_functions import find_company_relocation
 from app.tools.hq_relocation_functions import find_hq_relocation
 from app.tools.metro_matrix_functions import find_metro_matrix
@@ -47,6 +50,7 @@ tools = [
     find_company_relocation,
     find_hq_relocation,
     find_labor_force_stats,
+    find_median_hourly_wages,
     find_metro_matrix
 ]
 

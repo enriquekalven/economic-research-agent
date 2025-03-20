@@ -107,3 +107,53 @@ def get_state_tax_rates(
     )
 
     return state_tax_df, citations
+
+
+def get_median_hourly_wage(
+    city_names: List[str]
+):
+    """Get median hourly wages from a city."""
+    median_hourly_wage_table = "metro_median_hourly_wages"
+
+    city_name_lower_case = [city_name.lower() for city_name in city_names]
+
+    city_names_regex = "|".join(city_name_lower_case)
+
+    column_name_to_match = "metro"
+
+    median_wage_query = f"""
+    SELECT
+        *
+    FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{median_hourly_wage_table}`
+    WHERE REGEXP_CONTAINS(
+        LOWER({column_name_to_match}),
+        '{city_names_regex}'
+    );
+    """
+
+    median_hourly_wages = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=median_wage_query
+    )
+
+    def find_city(metro):
+        metro_lower = metro.lower()
+        for city in city_name_lower_case:
+            if city in metro_lower:
+                return city.capitalize()
+        return None
+
+
+    median_hourly_wages["city_name"] = median_hourly_wages["metro"].apply(
+        find_city)
+
+    # Citations.
+    citations = set(median_hourly_wages["source"].unique())
+
+    # Drop citation column.
+    median_hourly_wages.drop(
+        ["source", "metro"],
+        inplace=True,
+        axis=1
+    )
+    return median_hourly_wages, citations
