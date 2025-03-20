@@ -6,10 +6,12 @@ authors = [
     {name = "Your Name", email = "your@email.com"},
 ]
 dependencies = [
+    "census~=0.8.23",
     "db-dtypes~=1.4.2",
     "fastapi~=0.115.8",
     "google-cloud-logging~=3.11.4",
     "google-cloud-aiplatform[evaluation]~=1.81.0",
+    "google-genai~=1.5.0",
     "langchain-google-vertexai~=2.0.7",
     "langchain~=0.3.14",
     "langgraph~=0.2.63",
@@ -23,6 +25,7 @@ dependencies = [
     "streamlit",
     "streamlit-feedback",
     "traceloop-sdk~=0.38.7",
+    "us~=3.2.0",
     "uvicorn~=0.34.0",
 ]
 
