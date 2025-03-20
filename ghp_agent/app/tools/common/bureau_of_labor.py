@@ -109,6 +109,49 @@ def get_state_tax_rates(
     return state_tax_df, citations
 
 
+def get_union_employment(
+    metros: List[Dict[str,Any]]
+):
+    """Get Union Employment Percentage"""
+    union_table = "union_employed"
+
+    states = [metro.get("state", "") for metro in metros]
+
+    column_name_to_match = "state"
+
+    union_employement_query = f"""
+    SELECT
+        *
+    FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{union_table}`
+    WHERE {column_name_to_match} IN UNNEST({states})
+    """
+
+    state_union_employement = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=union_employement_query
+    )
+
+    metro_df = pd.DataFrame(metros)
+
+    union_employment_df = pd.merge(
+        left=state_union_employement,
+        right=metro_df,
+        on="state",
+        how="left"
+    )
+
+    # Citations.
+    citations = set(state_union_employement["source"].unique())
+
+    union_employment_df.drop(
+        labels=["source", "state"],
+        axis=1,
+        inplace=True
+    )
+
+    return union_employment_df, citations
+
+
 def get_median_hourly_wage(
     city_names: List[str]
 ):
@@ -157,3 +200,4 @@ def get_median_hourly_wage(
         axis=1
     )
     return median_hourly_wages, citations
+

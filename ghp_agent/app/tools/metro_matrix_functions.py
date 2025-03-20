@@ -14,7 +14,8 @@ import pandas as pd
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
-    get_state_tax_rates
+    get_state_tax_rates,
+    get_union_employment
 )
 from app.tools.common.gemini_sdk import GeminiSDKManager
 from app.utils.helper import (
@@ -76,13 +77,18 @@ def find_metro_matrix(
     median_hourly_wages, median_hourly_citations = get_median_hourly_wage(
         city_names=city_names)
 
+    # Union employment.
+    state_union_employment, union_citations = get_union_employment(
+        metros=metro_areas)
+
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
         labor_force_citations,
         median_hourly_citations,
         search_citations,
-        state_tax_citations
+        state_tax_citations,
+        union_citations
     )
     citations = {"citations": metro_matrix_citations}
 
@@ -92,7 +98,8 @@ def find_metro_matrix(
             forbes_ratings,
             labor_force_stats,
             median_hourly_wages,
-            state_tax
+            state_tax,
+            state_union_employment
         ],
         how="left",
         on="city_name"

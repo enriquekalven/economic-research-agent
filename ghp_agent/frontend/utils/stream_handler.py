@@ -167,7 +167,7 @@ class Client:
                 json={"input": data},
                 headers=headers,
                 stream=True,
-                timeout=30,
+                timeout=60,
             ) as response:
                 for line in response.iter_lines():
                     if line:
