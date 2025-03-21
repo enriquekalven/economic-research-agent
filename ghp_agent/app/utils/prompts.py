@@ -13,7 +13,6 @@ class Prompts:
         """
         Initial Gemini routing prompt.
 
-        Args: (str) the user query.
         Returns: (str) system instructions.
 
         """
@@ -35,3 +34,32 @@ class Prompts:
         Return the response in markdown. If response is a list, display as a table.
         Always return citations as a bulleted list if they are part of your tool response.
         """
+
+    def occupation_selection_prompt(self, naics_titles, industry_occupations) -> str:
+        """
+        Unskilled Labor Wages Occupation selection prompt.
+
+        Args:
+            naics_titles: List of industries to focus on.
+            industry_occupation: List of occupations to choose from.
+
+        Returns: (str) prompt.
+        """
+        return f""""For the industry sectors {naics_titles}, identify the most relevant occupations and their corresponding Standard Occupational Classification (SOC) codes from the following list.
+
+        List of Occupations and SOC Codes:
+        {industry_occupations}
+
+        Instructions:
+        1.  Focus specifically on each of the following industries:{naics_titles}.
+        2.  Select only the occupations and SOC codes that are directly and significantly applicable to UNSKILL LABOR for the specified industries.
+        3.  Exclude occupations that are clearly unrelated or have minimal relevance to all of the requested industries.
+        4.  Exclude occupations that would be categoriezed as "skilled" labor, and only returned occupations that would be categorized as "unskilled".
+        5.  The number of selected occupations should be around 15.
+        6.  Prioritize occupations that are essential for the core functions of the requested industries.
+        7.  Output the results as valid JSON, where the key is the SOC Code and the value is the Occupation title (e.g., {{"1234":"Operator"}}.
+        8.  Do not output any explanation. Only output the JSON.
+
+        Example Output:
+        {{"11-1011": "occupation 1", "11-1021": "occupation 2", ... }}
+        """""
