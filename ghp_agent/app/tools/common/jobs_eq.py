@@ -139,7 +139,6 @@ def get_empl_and_wages_by_industry(
         AND
         SUBSTR(code, 1, {max_length+1}) IN {tuple(naics_dig["code"])}
     GROUP BY metro, code;"""
-    print(sub_sector_sql)
 
     sub_sector_data = execute_bq_query_to_df(
         project=PROJECT_ID,
@@ -218,9 +217,9 @@ def get_unskilled_labor_wages(
             return "Could not find Occupations given the requested Industries."
     except json.JSONDecodeError:
         return "Could not find Occupations given the requested Industries."
-    print(occupations)
+
     # Use selected occupations to create unskilled labor salaries table.
-    if isinstance(occupations, list): # Handle various LLM output.
+    if isinstance(occupations, list): # Handle various LLM
         occupations = occupations[0]
     soc_codes = list(occupations.keys())
     soc_where_clause = f"(soc = '{soc_codes[0]}'"
@@ -237,3 +236,48 @@ def get_unskilled_labor_wages(
     )
 
     return unskilled_labor
+
+
+def get_labor_market_info(
+    city_names: List[str],
+    naics_codes: List[str],
+)->pd.DataFrame:
+    """
+    Query BigQuery/JobsEQ data for the Area Industry Occupations Breakdown
+    table for HQ Relocation.
+
+    Args:
+        city_names: List of cities requested by user. Should only be
+            one city requested.
+        naics_codes: List of NAICS Codes requested for Industries.
+
+    Returns:
+        Pandas dataframe representing the Area Industry Occupations
+            Breakdown table for HQ Relocation.
+    """
+
+    # Get subsector numbers.
+    naics_where_clause = f"(naics = {naics_codes[0]}"
+    for code in naics_codes[1:]:
+        naics_where_clause = naics_where_clause + f" OR naics = {code}"
+    naics_where_clause = naics_where_clause + ")"
+    labor_sql_query = f"""SELECT occupation, empl, avg_hourly_wages_int AS
+        avg_hourly, avg_ann_wages FROM {INDUSTRY_OCCUPATION_2024Q3} WHERE
+        {naics_where_clause} AND (LOWER(metro) LIKE LOWER('%{city_names[0]}%'))
+        LIMIT 50;"""
+
+    # Get Instustry Occupation Data
+    labor_market_info = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=labor_sql_query
+    )
+    labor_market_info["avg_hourly"] = "$" + labor_market_info["avg_hourly"]
+
+    labor_market_info = labor_market_info.rename(columns = {
+        "occupation": "Occupational Title",
+        "empl": "Total Employees",
+        "avg_ann_wages": "Average Annual Salary",
+        "avg_hourly": "Avgerage Hourly Rate"
+    })# formatted with same names as template.
+
+    return labor_market_info
