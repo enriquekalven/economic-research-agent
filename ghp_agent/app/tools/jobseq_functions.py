@@ -3,31 +3,32 @@
 #  agreement with Google.
 """Tools to support JobsEQ data source."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Tuple
 
 from langchain_core.tools import tool
 import pandas as pd
 
 from app.tools.common.jobs_eq import (
-    empl_and_wages_by_industry,
-    process_naics_requests,
-    unskilled_labor_wages,
+    get_empl_and_wages_by_industry,
+    get_process_naics_requests,
+    get_unskilled_labor_wages,
 )
 
-from app.utils.helper import execute_bq_query_to_df
 
 @tool
 def process_naics_requests(
     naics_requests: List[str],
 )  -> Tuple[List[str]]:
-    """This tool is required to run before calling empl_and_wages_by_industry and unskilled_labor_wages tools.
-    It processes a list of strings containing NAICS codes and industry names, 
-    checking against a Pandas DataFrame and returning unique industry names and NAICS codes.
+    """This tool is required to run before calling empl_and_wages_by_industry
+    and unskilled_labor_wages tools. It processes a list of strings containing
+    NAICS codes and industry names, checking against a Pandas DataFrame and
+    returning unique industry names and NAICS codes.
 
     Args:
         naics_requests: A list of strings, where each string is either an 
-                        industry name or a NAICS code (numerical code). This comes from the user's request.
-                        Every requested code and industry should be included.
+            industry name or a NAICS code (numerical code). This is taken
+            from the user's request. Every requested code and industry
+            should be included.
 
     Returns:
         A tuple containing two lists:
@@ -35,7 +36,7 @@ def process_naics_requests(
             - A list of unique NAICS codes.
     """
     # Get NAICS Industry titles and codes from user query.
-    industry_names, naics_codes = process_naics_requests(
+    industry_names, naics_codes = get_process_naics_requests(
         naics_requests=naics_requests,
     )
 
@@ -47,8 +48,9 @@ def empl_and_wages_by_industry(
     city_names: List[str],
     naics_codes: List[str],
 )->pd.DataFrame:
-    """Use this tool whenever a user is looking for information on employment and wages by industry.
-    This might include employment numbers and current average annual wages for a given industry.
+    """Use this tool whenever a user is looking for information on employment
+    and wages by industry. This might include employment numbers and
+    current average annual wages for a given industry.
 
     Args:
         city_names: List of city's requested by user.
@@ -56,10 +58,10 @@ def empl_and_wages_by_industry(
             This comes directly from the process_naics_requests tool.
 
     Returns:
-        Pandas dataframe representing the industry employment and wages by industry table.
+        Pandas df representing industry employment and wages by industry.
     """
     # Get employment and wages by industry sub sector.
-    sector_employment_and_wages_by_sub_sector = empl_and_wages_by_industry(
+    sector_employment_and_wages_by_sub_sector = get_empl_and_wages_by_industry(
         city_names=city_names,
         naics_codes=naics_codes
     )
@@ -73,9 +75,9 @@ def unskilled_labor_wages(
     naics_codes: List[str],
     naics_titles: List[str],
 )->pd.DataFrame:
-    """Use this tool whenever a user is looking for unskilled labor wages information.
-    This might include average salary, entry level salary, and experienced salary
-    given an occupation, industry, and city.
+    """Use this tool whenever a user is looking for unskilled labor wages
+    information. This might include average salary, entry level salary,
+    and experienced salary given an occupation, industry, and city.
 
     Args:
         city_names: List of cities requested by user.
@@ -85,9 +87,9 @@ def unskilled_labor_wages(
             This comes directly from the process_naics_requests tool.
 
     Returns:
-        Pandas dataframe representing the unskilled labor salaries by job title table.
+        Pandas df representing the unskilled labor salaries by job title table.
     """
-    unskilled_labor = unskilled_labor_wages(
+    unskilled_labor = get_unskilled_labor_wages(
         city_names=city_names,
         naics_codes=naics_codes,
         naics_titles=naics_titles

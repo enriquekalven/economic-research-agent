@@ -3,6 +3,8 @@
 #  agreement with Google.
 """File containing Gemini prompts."""
 
+from typing import List
+
 
 class Prompts:
     """
@@ -35,7 +37,11 @@ class Prompts:
         Always return citations as a bulleted list if they are part of your tool response.
         """
 
-    def occupation_selection_prompt(self, naics_titles, industry_occupations) -> str:
+    def occupation_selection_prompt(
+        self,
+        naics_titles: List[str],
+        industry_occupations: List[str]
+    ) -> str:
         """
         Unskilled Labor Wages Occupation selection prompt.
 
@@ -45,7 +51,9 @@ class Prompts:
 
         Returns: (str) prompt.
         """
-        return f""""For the industry sectors {naics_titles}, identify the most relevant occupations and their corresponding Standard Occupational Classification (SOC) codes from the following list.
+        return f""""For the industry sectors {naics_titles}, identify the most \
+        relevant occupations and their corresponding Standard Occupational \
+        Classification (SOC) codes from the following list.
 
         List of Occupations and SOC Codes:
         {industry_occupations}
