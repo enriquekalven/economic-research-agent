@@ -9,18 +9,23 @@ import Levenshtein
 import logging
 import os
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from google.genai import types
+from google import genai
+from google.genai import types as genai_types
+from google.cloud import bigquery
 from langchain_core.tools import tool
 import pandas as pd
+import pydantic
 
 from app.tools.common.jobs_eq import (
-    extract_naics_info
+    empl_and_wages_by_industry,
+    process_naics_requests,
+    unskilled_labor_wages,
 )
 from app.tools.common.gemini_sdk import GeminiSDKManager
 from app.utils.helper import (
-    join_sets,
+    execute_bq_query_to_df,
     merge_dataframes
 )
 
@@ -31,6 +36,7 @@ DATA_AXLE = "ghp-poc.jobseq.data_axle"
 INDUSTRY_2024Q3 = "ghp-poc.jobseq.industry_2024q3_cleaned"
 INDUSTRY_OCCUPATION_2024Q3 = "ghp-poc.jobseq.industry_occupation_mix_2024q3"
 OCCUPATION_WAGES_2024Q3 = "ghp-poc.jobseq.`jobseq-occupation-wages-2024q3`"
+NAICS_US_CODE_2022 = "ghp-poc.jobseq.naics_us_code_2022"
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_dir)  # Change the working directory
@@ -46,7 +52,7 @@ logger = logging.getLogger(__name__)
 @tool
 def find_company_relocation(
     metro_areas: List[Dict[str, Any]],
-    user_query: str,
+    industry_requests: List[str],
 ) -> Tuple[pd.DataFrame, set]:
     """Search for company relocation for each specified city.
 
@@ -63,7 +69,9 @@ def find_company_relocation(
                 "state": "",
                 "state_abbreviation": ""
             }}
-        user_query: The user's query.
+        industry_requests: A list of strings, where each string is either an 
+            industry name or a NAICS code (numerical code), as requested by the user.
+            (E.g., ["325", "chemical manufacturing", "5555"]
 
     Returns:
         empl_and_wages_by_industry_df: A Pandas Dataframe containing the
@@ -72,108 +80,239 @@ def find_company_relocation(
             salaries.
     """
     city_names = [f"{area.get('city_name')}" for area in metro_areas]
-    found_titles, found_codes = extract_naics_info(user_query)
-    print(found_titles)
-    return "TEST"
-    # Parallelize functions needed for metro matrix.
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     futures = {
-    #         # executor.submit(extract_naics_info, user_query): "naics_codes",
-    #     }
+    found_names, found_codes = process_naics_requests(industry_requests, NAICS_MAPPING)
+    if found_names==[]:
+        return "Could not find the requested Industry."
+    # Parallelize functions for company relocation.
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(empl_and_wages_by_industry, city_names, found_codes): "empl_wages",
+            executor.submit(unskilled_labor_wages, city_names, found_codes, found_names): "labor_wages",
+        }
 
-    #     results = {}
-    #     for future in concurrent.futures.as_completed(futures):
-    #         key = futures[future]
-    #         results[key] = future.result()
+        results = {}
+        for future in concurrent.futures.as_completed(futures):
+            key = futures[future]
+            results[key] = future.result()
 
-    # # Get results.
-    # found_titles, found_codes = results["naics_codes"]
-    # labor_force_stats, labor_force_citations = results["labor"]
-    # state_tax, state_tax_citations = results["tax"]
-    # median_hourly_wages, median_hourly_citations = results["wage"]
-    # state_union_employment, union_citations = results["union"]
+    # Get results.
+    # jobseq_source = "https://jobseq.eqsuite.com"
+    empl_wages_by_industry= results["empl_wages"]
+    unskilled_labor = results["labor_wages"]
 
-    # # Process citations for matrix.
-    # metro_matrix_citations = join_sets(
-    #     labor_force_citations,
-    #     median_hourly_citations,
-    #     search_citations,
-    #     state_tax_citations,
-    #     union_citations
+    # Process citations.
+    # citations
+    # empl_and_wages_by_industry_table = empl_and_wages_by_industry(
+    #     city_names=city_names,
+    #     naics_codes=found_codes,
     # )
-    # citations = {"citations": metro_matrix_citations}
-
-    # # Merge all data points.
-    # merged_df = merge_dataframes(
-    #     df_list=[
-    #         forbes_ratings,
-    #         labor_force_stats,
-    #         median_hourly_wages,
-    #         state_tax,
-    #         state_union_employment
-    #     ],
-    #     how="left",
-    #     on="city_name"
+    # unskilled_labor = unskilled_labor_wages(
+    #     city_names=city_names,
+    #     naics_codes=found_codes,
+    #     naics_titles=found_names,
     # )
-
-    # metro_matrix = format_metro_matrix_data(merged_df)
-    # return metro_matrix, citations
-
+    citations = {"citations": "https://jobseq.eqsuite.com/"}
+    return empl_wages_by_industry, unskilled_labor, citations
 
 
-def extract_naics_info(query):
+def process_naics_requests(
+    naics_requests: List[str],
+    naics_dataframe: pd.DataFrame,
+) -> Tuple[List[str]]:
     """
-    Extracts NAICS codes and titles from a user query, handling misspellings and case sensitivity.
+    Processes a list of strings containing NAICS codes and industry names, 
+    checking against a Pandas DataFrame and returning unique industry names and NAICS codes.
 
     Args:
-        query (str): The user's query string.
+        naics_requests: A list of strings, where each string is either an 
+                        industry name or a NAICS code.
+        naics_dataframe: A Pandas DataFrame containing NAICS data, with columns
+                         "NAICS Code" and "Industry Title".
 
     Returns:
-        tuple: A tuple containing two lists - one with NAICS titles and the other with corresponding NAICS codes.
+        A tuple containing two lists:
+            - A list of unique industry names.
+            - A list of unique NAICS codes.
     """
 
-    # Compile regex patterns (case-insensitive).
-    code_pattern = re.compile(r'\b(\d{2,6})\b')
-    # Extract all unique NAICS titles from the dataframe.
-    titles = NAICS_MAPPING['2022 NAICS US Title'].unique()
+    industry_names = set()
+    naics_codes = set()
 
-    # Find all potential codes in the query
-    code_matches = code_pattern.findall(query)
-    title_matches = []
-    # Calculate Levenshtein distance for each title.
-    for title in titles:
-        distance = Levenshtein.distance(query.lower(), title.lower())
-        if distance <= 2:
-            title_matches.append(title)
+    # Create a dictionary for efficient lookup
+    naics_data = {}
+    for index, row in naics_dataframe.iterrows():
+        code = str(row["code"]).strip() # convert to string to handle various datatypes.
+        name = str(row["2022 NAICS US Title"]).strip().lower()
+        naics_data[code] = name
 
-    found_titles = []
-    found_codes = []
-    found_pairs = set()  # Use a set to track (title, code) pairs.
+    for item in naics_requests:
+        item_lower = item.lower()
+        if item.isdigit():
+            if item in naics_data:
+                naics_codes.add(item)
+                industry_names.add(naics_data[item])
+        else:
+            if item_lower in naics_data.values():
+                for code, name in naics_data.items():
+                    if name == item_lower:
+                        industry_names.add(name)
+                        naics_codes.add(code)
 
-    # Process code matches.
-    for code in code_matches:
-        # Find the row with the code.
-        row = NAICS_MAPPING[NAICS_MAPPING['code'] == code]
-        # If the code is found, add the title and code to the lists.
-        if not row.empty:
-            title = row.iloc[0]['2022 NAICS US Title']
-            pair = (title, code)
-            if pair not in found_pairs:
-                found_titles.append(title)
-                found_codes.append(code)
-                found_pairs.add(pair)
+    return list(industry_names), list(naics_codes)
 
-    # Process title matches.
-    for title in title_matches:
-        # Find all rows with the title.
-        rows = NAICS_MAPPING[NAICS_MAPPING['2022 NAICS US Title'] == title]
-        # If the title is found, find the longest code and add the title and code to the lists.
-        if not rows.empty:
-            longest_code = max(rows['code'], key=len)
-            pair = (title, longest_code)
-            if pair not in found_pairs:
-                found_titles.append(title)
-                found_codes.append(longest_code)
-                found_pairs.add(pair)
 
-    return found_titles, found_codes
+def empl_and_wages_by_industry(
+    city_names: List[str],
+    naics_codes: List[str],
+)->pd.DataFrame:
+    """
+    Query BigQuery/JobsEQ data for the industry employment and wages by industry table for Company Relocation.
+
+    Args:
+        city_names: List of city's requested by user.
+        naics_codes: List of NAICS Codes requested for Industries.
+
+    Returns:
+        Pandas dataframe representing the industry employment and wages by industry table.
+    """
+
+    # Get subsector numbers.
+    naics_where_clause = f"(Substring(code, 1, {len(naics_codes[0])}) = '{naics_codes[0]}'"
+    # Find the longest NAICS code to find the number substring.
+    max_length = len(naics_codes[0])
+    for code in naics_codes[1:]:
+        naics_where_clause = naics_where_clause + f" OR SUBSTR(code, 1, {len(code)}) = '{code}'"
+        max_length = max(max_length, len(code))
+    naics_where_clause = naics_where_clause + f") AND LENGTH(code) = {max_length+1}"
+    naics_sql = f"SELECT code, `2022 NAICS US Title` FROM {NAICS_US_CODE_2022} WHERE {naics_where_clause};"
+
+    # Get child NAICS sector names and codes for Each parent sector.
+    naics_dig = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=naics_sql
+    )
+
+    # For each child sector, calculate Employment and Current Avg Ann Wages for that city
+    city_where_clause = f"(LOWER(metro) LIKE LOWER('%{city_names[0]}%')"
+    if len(city_names)>1:
+        for city in city_names[1:]:
+            city_where_clause = city_where_clause + f" OR LOWER(metro) LIKE LOWER('%{city}%')"
+    city_where_clause = city_where_clause + ")"
+
+    sub_sector_sql = f"""
+    SELECT
+      SUBSTR(code, 1, {max_length+1}) AS code,
+      SUM(empl) AS sum_total_empl_int,
+      SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int,
+      metro
+    FROM
+      {INDUSTRY_2024Q3} t
+    WHERE
+      {city_where_clause}
+      AND
+      SUBSTR(code, 1, {max_length+1}) IN {tuple(naics_dig["code"])} Group by metro, code;"""
+
+    sub_sector_data = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=sub_sector_sql
+    )
+
+    # Combine with naics 3 dig table
+    merged_df = merge_dataframes(
+        df_list=[naics_dig, sub_sector_data],
+        how="left",
+        on="code"
+    )
+
+    sector_employment_and_wages_by_sub_sector = merged_df[["2022 NAICS US Title", "sum_total_empl_int", "avg_avg_ann_wages_int", "metro"]]
+    sector_employment_and_wages_by_sub_sector = sector_employment_and_wages_by_sub_sector.rename(columns = {
+        "2022 NAICS US Title": "Industry",
+        "sum_total_empl_int": "Employment",
+        "avg_avg_ann_wages_int": "Current Avg Ann Wages",
+        "metro": "Metro"
+    })# formatted with same names as template.
+
+    return sector_employment_and_wages_by_sub_sector
+
+
+def unskilled_labor_wages(
+    city_names: List[str],
+    naics_codes: List[str],
+    naics_titles: List[str],
+)->pd.DataFrame:
+    """
+    Query BigQuery/JobsEQ data for the unskilled labor salaries by job title table for Company Relocation.
+
+    Args:
+        city_names: List of cities requested by user.
+        naics_codes: List of NAICS Codes requested for Industries.
+        naics_titles: List of NAICS Titles requested for Industries.
+
+    Returns:
+        Pandas dataframe representing the unskilled labor salaries by job title table.
+    """
+
+    # Create the metro where clause.
+    city_where_clause = f"(LOWER(metro) LIKE LOWER('%{city_names[0]}%')"
+    if len(city_names)>1:
+        for city in city_names[1:]:
+            city_where_clause = city_where_clause + f" OR LOWER(metro) LIKE LOWER('%{city}%')"
+    city_where_clause = city_where_clause + ")"
+    industry_sql_query = f"SELECT soc, occupation FROM {OCCUPATION_WAGES_2024Q3} WHERE {city_where_clause};"
+
+    # Get Instustry Occupation Data
+    industry_occupations = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=industry_sql_query
+    )
+
+    # Send to Gemini to decide which to include
+    model = GeminiSDKManager()
+    occupation_selection_prompt = f""""For the industry sectors {naics_titles}, identify the most relevant occupations and their corresponding Standard Occupational Classification (SOC) codes from the following list.
+
+    List of Occupations and SOC Codes:
+    {industry_occupations}
+
+    Instructions:
+    1.  Focus specifically on each of the following industries:{naics_titles}.
+    2.  Select only the occupations and SOC codes that are directly and significantly applicable to UNSKILL LABOR for the specified industries.
+    3.  Exclude occupations that are clearly unrelated or have minimal relevance to all of the requested industries.
+    4.  Exclude occupations that would be categoriezed as "skilled" labor, and only returned occupations that would be categorized as "unskilled".
+    5.  The number of selected occupations should be around 15.
+    6.  Prioritize occupations that are essential for the core functions of the requested industries.
+    7.  Output the results as valid JSON, where the key is the SOC Code and the value is the Occupation title (e.g., {{"1234":"Operator"}}.
+    8.  Do not output any explanation. Only output the JSON.
+
+    Example Output:
+    {{"11-1011": "occupation 1", "11-1021": "occupation 2", ... }}
+
+    """
+    response = model.send_request(
+        contents=occupation_selection_prompt,
+        response_mime_type = "application/json",
+        )
+
+    # Turn into dict.
+    try:
+        occupations = json.loads(response.candidates[0].content.parts[0].text)
+        if len(occupations) == 0:
+            return("Could not find Occupations given the requested Industries.")
+    except json.JSONDecodeError:
+        return("Could not find Occupations given the requested Industries.")
+
+    # Use the selected occupations to create unskilled labor salaries by job title table.
+    soc_codes = list(occupations.keys())
+    soc_where_clause = f"(soc = '{soc_codes[0]}'"
+    for soc in soc_codes[1:]:
+        soc_where_clause = soc_where_clause + f" OR soc = '{soc}'"
+    soc_where_clause = soc_where_clause + ")"
+    unskilled_labor_query = f"SELECT occupation, mean, entry_level, experienced, metro FROM {OCCUPATION_WAGES_2024Q3} WHERE {soc_where_clause} AND {city_where_clause};"
+
+    # Get Instustry Occupation Data
+    unskilled_labor = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=unskilled_labor_query
+    )
+
+    return unskilled_labor
+    

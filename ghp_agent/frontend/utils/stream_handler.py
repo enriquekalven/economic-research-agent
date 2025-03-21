@@ -144,7 +144,7 @@ class Client:
                 url,
                 data=json.dumps(feedback_dict),
                 headers=headers,
-                timeout=10,
+                timeout=30,
             )
         elif self.agent is not None:
             self.agent.register_feedback(feedback=feedback_dict)
@@ -167,7 +167,7 @@ class Client:
                 json={"input": data},
                 headers=headers,
                 stream=True,
-                timeout=10,
+                timeout=30,
             ) as response:
                 for line in response.iter_lines():
                     if line:

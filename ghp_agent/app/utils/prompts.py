@@ -27,7 +27,8 @@ class Prompts:
 
         Else, if none of your tools will fulfill the query then use invalid_request.
 
-        When the user asks for information about a location, they must provide the city name. If the user specified a state, use the state's two letter abreviation for the function call. If the query requires an industry, clarify the industry if needed.
+        When the user asks for information about a location, they must provide the city name. If the user specified a state, use the state's two letter abreviation for the function call.
+        If the query requires an industry, clarify the industry if needed. NAICS codes (numerical codes) can be used in place of industry names (e.g., "create a company relocation to city_name for industry 325", then call company relocation with industry_requests = ["325"]).
 
         If a user request is ambiguous, ask clarifying questions to determine the exact function and parameters needed. Do not make assumptions about missing information.
 
