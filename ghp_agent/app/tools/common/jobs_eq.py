@@ -75,7 +75,6 @@ def get_process_naics_requests(
                     if name == item_lower:
                         industry_names.add(name)
                         naics_codes.add(code)
-
     return list(industry_names), list(naics_codes)
 
 
