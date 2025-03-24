@@ -278,7 +278,6 @@ def get_unskilled_labor_wages(
     original_last_cols = merged_df.columns[last_n_cols].tolist()
     rename_dict = dict(zip(original_last_cols, new_names))
     merged_df = merged_df.rename(columns=rename_dict)
-
     return merged_df
 
 
