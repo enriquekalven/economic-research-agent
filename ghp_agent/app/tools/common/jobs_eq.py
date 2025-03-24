@@ -104,8 +104,8 @@ def get_empl_and_wages_by_industry(
         naics_where_clause = naics_where_clause + f""" OR
             SUBSTR(code, 1, {len(code)}) = '{code}'"""
         max_length = max(max_length, len(code))
-        if not max_length == 6:
-            max_length+=1
+    if not max_length == 6:
+        max_length+=1
     naics_where_clause = naics_where_clause + f""") AND
         LENGTH(code) = {max_length}"""
     naics_sql = f"""SELECT code, `2022 NAICS US Title` FROM
@@ -116,6 +116,7 @@ def get_empl_and_wages_by_industry(
         project=PROJECT_ID,
         query=naics_sql
     )
+
     if naics_dig.empty:
         return "No Sub-Sectors found within the requested Industry."
 
@@ -132,7 +133,7 @@ def get_empl_and_wages_by_industry(
     city_where_clause = city_where_clause + ")"
     sub_sector_sql = f"""
     SELECT
-        SUBSTR(code, 1, {max_length+1}) AS code,
+        SUBSTR(code, 1, {max_length}) AS code,
         SUM(empl) AS sum_total_empl_int,
         SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int,
         metro
@@ -141,7 +142,7 @@ def get_empl_and_wages_by_industry(
     WHERE
         {city_where_clause}
         AND
-        SUBSTR(code, 1, {max_length+1}) IN {naics_where_clause}
+        SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
     GROUP BY metro, code;"""
 
     sub_sector_data = execute_bq_query_to_df(
@@ -167,7 +168,6 @@ def get_empl_and_wages_by_industry(
         "avg_avg_ann_wages_int": "Current Avg Ann Wages",
         "metro": "Metro"
     })# formatted with same names as template.
-
     return empl_wages_table
 
 
@@ -238,7 +238,8 @@ def get_unskilled_labor_wages(
         project=PROJECT_ID,
         query=unskilled_labor_query
     )
-
+    print(unskilled_labor_query)
+    # print(unskilled_labor)
     return unskilled_labor
 
 
@@ -268,7 +269,7 @@ def get_labor_market_info(
     labor_sql_query = f"""SELECT occupation, empl, avg_hourly_wages_int AS
         avg_hourly, avg_ann_wages FROM {INDUSTRY_OCCUPATION_2024Q3} WHERE
         {naics_where_clause} AND (LOWER(metro) LIKE LOWER('%{city_names[0]}%'))
-        LIMIT 50;"""
+        LIMIT 20;"""
 
     # Get Instustry Occupation Data
     labor_market_info = execute_bq_query_to_df(
@@ -276,12 +277,14 @@ def get_labor_market_info(
         query=labor_sql_query
     )
     labor_market_info["avg_hourly"] = "$" + labor_market_info["avg_hourly"]
-
+    print(labor_sql_query)
     labor_market_info = labor_market_info.rename(columns = {
         "occupation": "Occupational Title",
         "empl": "Total Employees",
         "avg_ann_wages": "Average Annual Salary",
         "avg_hourly": "Avgerage Hourly Rate"
     })# formatted with same names as template.
+    if labor_market_info.empty:
+        return "No information found for that industry and location."
 
     return labor_market_info

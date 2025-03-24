@@ -62,7 +62,7 @@ def find_company_relocation(
             by the user (E.g., ["325", "chemical manufacturing", "5555"]).
 
     Returns:
-        empl_and_wages_by_industry_df: A Pandas Dataframe containing the
+        empl_and_wages_by_industry_df: A Pandas DataFrame containing the
             employment and wages by industry.
         unskilled_labor_salaries_df: A Pandas Dataframe containing the unskilled
             labor salaries.
@@ -97,4 +97,5 @@ def find_company_relocation(
     empl_wages_by_industry= results["empl_wages"]
     unskilled_labor = results["labor_wages"]
     citations = {"citations": "https://jobseq.eqsuite.com/"}
+    print(empl_wages_by_industry, unskilled_labor, citations)
     return empl_wages_by_industry, unskilled_labor, citations
