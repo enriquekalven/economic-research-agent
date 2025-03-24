@@ -269,7 +269,6 @@ code,2022 NAICS US Title
 238910,Site Preparation Contractors
 23899,All Other Specialty Trade Contractors
 238990,All Other Specialty Trade Contractors
-31-33,Manufacturing
 311,Food Manufacturing
 3111,Animal Food Manufacturing
 31111,Animal Food Manufacturing
@@ -2124,3 +2123,6 @@ code,2022 NAICS US Title
 928110,National Security 
 92812,International Affairs 
 928120,International Affairs 
+31,Manufacturing
+33,Manufacturing
+32,Manufacturing
