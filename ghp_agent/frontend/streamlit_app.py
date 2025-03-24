@@ -224,14 +224,14 @@ def generate_ai_response(
     ai_message = st.chat_message("ai")
     with ai_message:
         status = st.status("Generating answer🤖")
-        stream_handler = StreamHandler(stm=st)
+        stream_handler = StreamHandler(st=st)
         client = Client(
             remote_agent_engine_id=remote_agent_engine_id,
             agent_callable_path=agent_callable_path,
             url=url,
             authenticate_request=authenticate_request,
         )
-        get_chain_response(stm=st, client=client, stream_handler=stream_handler)
+        get_chain_response(st=st, client=client, stream_handler=stream_handler)
         status.update(label="Finished!", state="complete", expanded=False)
 
 
