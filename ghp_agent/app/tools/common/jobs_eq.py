@@ -238,8 +238,7 @@ def get_unskilled_labor_wages(
         project=PROJECT_ID,
         query=unskilled_labor_query
     )
-    print(unskilled_labor_query)
-    # print(unskilled_labor)
+
     return unskilled_labor
 
 
@@ -277,7 +276,6 @@ def get_labor_market_info(
         query=labor_sql_query
     )
     labor_market_info["avg_hourly"] = "$" + labor_market_info["avg_hourly"]
-    print(labor_sql_query)
     labor_market_info = labor_market_info.rename(columns = {
         "occupation": "Occupational Title",
         "empl": "Total Employees",
