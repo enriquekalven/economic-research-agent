@@ -3,7 +3,6 @@
 #  agreement with Google.
 """Bureau of Labor statistics functions for tools."""
 
-import os
 from typing import Any, Dict, List
 
 import pandas as pd

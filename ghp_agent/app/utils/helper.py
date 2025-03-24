@@ -50,7 +50,7 @@ def join_sets(*sets) -> set:
 
 def merge_dataframes(
     df_list,
-    how='outer',
+    how="outer",
     on=None
 ):
     """
