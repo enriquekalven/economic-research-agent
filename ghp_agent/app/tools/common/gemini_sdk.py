@@ -3,6 +3,7 @@
 #  agreement with Google.
 """Functions supporting Gemini SDK - not integrated into langchain."""
 
+import os
 from typing import Any, Dict, List, Optional
 
 from google import genai

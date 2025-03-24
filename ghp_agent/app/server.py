@@ -28,6 +28,7 @@ from langchain_core.runnables import RunnableConfig
 from traceloop.sdk import Instruments, Traceloop
 
 from app.agent import agent
+from app.utils.helper import access_secret_version
 from app.utils.tracing import CloudTraceLoggingSpanExporter
 from app.utils.typing import (
     Feedback,
@@ -36,6 +37,31 @@ from app.utils.typing import (
     dumps,
     ensure_valid_config,
 )
+
+# TODO: Change to a .env file with all constants / variables.
+os.environ["PROJECT_ID"] = "ghp-poc"
+os.environ["PROJECT_NUMBER"] = "489922131187"
+os.environ["BEA_API_SECRET_KEY"] = "BEA_API_KEY"
+
+PROJECT_ID = os.getenv("PROJECT_ID")
+BEA_API_SECRET_KEY = os.getenv("BEA_API_SECRET_KEY")
+
+
+os.getenv(
+    "BEA_API_SECRET_KEY", "BEA_API_KEY")
+
+
+# Ensure env variables are set.
+if not PROJECT_ID or not BEA_API_SECRET_KEY:
+    raise ValueError(
+        "GCP_PROJECT_ID or SECRET_ID environment variables are not set.")
+
+
+# Get BEA API key from Secret Manager.
+bea_api_key = access_secret_version(
+    project_id=PROJECT_ID, secret_id=BEA_API_SECRET_KEY)
+os.environ["BEA_API_KEY"] = bea_api_key
+
 
 # Initialize FastAPI app and logging
 app = FastAPI(

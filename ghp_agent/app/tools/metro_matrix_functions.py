@@ -12,6 +12,7 @@ from google.genai import types
 from langchain_core.tools import tool
 import pandas as pd
 
+from app.tools.common.bea_api import get_metros_gdps
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
@@ -21,9 +22,6 @@ from app.tools.common.bureau_of_labor import (
 from app.tools.common.gemini_sdk import GeminiSDKManager
 from app.utils.helper import join_sets, merge_dataframes
 
-
-DATA_AXLE = "ghp-poc.jobseq.data_axle"
-PROJECT_ID = "ghp-poc"
 LABOR_STATS_DATASET = "bls"
 
 
@@ -66,6 +64,7 @@ def find_metro_matrix(
             executor.submit(get_labor_force_stats, city_names): "labor",
             executor.submit(get_state_tax_rates, metro_areas): "tax",
             executor.submit(get_median_hourly_wage, city_names): "wage",
+            executor.submit(get_metros_gdps, city_names): "gdp",
             executor.submit(get_union_employment, metro_areas): "union",
         }
 
@@ -75,6 +74,7 @@ def find_metro_matrix(
             results[key] = future.result()
 
     # Get results.
+    gdp_metro, gdp_citations = results["gdp"]
     forbes_ratings, search_citations = results["forbes"]
     labor_force_stats, labor_force_citations = results["labor"]
     state_tax, state_tax_citations = results["tax"]
@@ -83,6 +83,7 @@ def find_metro_matrix(
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
+        gdp_citations,
         labor_force_citations,
         median_hourly_citations,
         search_citations,
@@ -94,6 +95,7 @@ def find_metro_matrix(
     # Merge all data points.
     merged_df = merge_dataframes(
         df_list=[
+            gdp_metro,
             forbes_ratings,
             labor_force_stats,
             median_hourly_wages,
@@ -108,6 +110,7 @@ def find_metro_matrix(
     return metro_matrix, citations
 
 
+
 def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
 
@@ -119,6 +122,7 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     # Rename columns to match template.
     col_rename_mapping = {
+        "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
         "forbes_ranking": "Forbes Best Places for Business",
         "labor_force": "Labor Force, not seasonally-adjusted",
         "unemployment_rate": "Unemployment Rate",
