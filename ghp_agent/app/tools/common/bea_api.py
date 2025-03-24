@@ -13,8 +13,6 @@ from typing import List
 from google.cloud import logging as google_cloud_logging
 import pandas as pd
 
-from app.utils.helper import access_secret_version
-
 logging_client = google_cloud_logging.Client()
 logger = logging_client.logger(__name__)
 
