@@ -60,5 +60,5 @@ linting:
           when: on_success
         - when: never
     script:
-        - pip install pylint==3.3
+        - pip install pylint==3.3.*
         - pylint --jobs=0 $(git ls-files '*.py')
