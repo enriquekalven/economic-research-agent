@@ -88,12 +88,3 @@ def get_metros_gdps(city_names: List[str]):
         return gdp_df, gdp_citations
     except Exception as e:
         raise e
-
-if __name__ == "__main__":
-    bea_api_key = access_secret_version("ghp-poc", "BEA_API_KEY")
-    os.environ["BEA_API_KEY"] = bea_api_key
-    gdp_results = get_metros_gdps(
-        city_names=["Houston", "Tulsa", "Reno"]
-    )
-    logging.info(f"GDP by Metros: {gdp_results[1]}")
-    logging.info(f"Citations: {gdp_results[1]}")
