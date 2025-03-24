@@ -3,8 +3,18 @@
 #  agreement with Google.
 """Utility Functions."""
 
-from google.cloud import bigquery
+from google.cloud import bigquery, secretmanager
 import pandas as pd
+
+
+def access_secret_version(project_id, secret_id, version_id="latest"):
+    """Access secret from GCP Secret Manager."""
+
+    client = secretmanager.SecretManagerServiceClient()
+    name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+    response = client.access_secret_version(request={"name": name})
+
+    return response.payload.data.decode("UTF-8")
 
 
 def execute_bq_query_to_df(project: str, query: str) -> pd.DataFrame:
@@ -40,7 +50,7 @@ def join_sets(*sets) -> set:
 
 def merge_dataframes(
     df_list,
-    how='outer',
+    how="outer",
     on=None
 ):
     """

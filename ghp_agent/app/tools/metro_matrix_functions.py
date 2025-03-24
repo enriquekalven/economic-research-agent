@@ -12,22 +12,16 @@ from google.genai import types
 from langchain_core.tools import tool
 import pandas as pd
 
+from app.tools.common.bea_api import get_metros_gdps
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
     get_state_tax_rates,
-    get_union_employment
+    get_union_employment,
 )
 from app.tools.common.gemini_sdk import GeminiSDKManager
-from app.utils.helper import (
-    join_sets,
-    merge_dataframes
-)
+from app.utils.helper import join_sets, merge_dataframes
 
-
-
-DATA_AXLE = "ghp-poc.jobseq.data_axle"
-PROJECT_ID = "ghp-poc"
 LABOR_STATS_DATASET = "bls"
 
 
@@ -60,6 +54,7 @@ def find_metro_matrix(
         metro_matrix_df: A Pandas Dataframe containing the metro
             matrix.
     """
+    # pylint: disable=inconsistent-quotes
     city_names = [f"{area.get('city_name')}" for area in metro_areas]
 
     # Parallelize functions needed for metro matrix.
@@ -69,6 +64,7 @@ def find_metro_matrix(
             executor.submit(get_labor_force_stats, city_names): "labor",
             executor.submit(get_state_tax_rates, metro_areas): "tax",
             executor.submit(get_median_hourly_wage, city_names): "wage",
+            executor.submit(get_metros_gdps, city_names): "gdp",
             executor.submit(get_union_employment, metro_areas): "union",
         }
 
@@ -78,6 +74,7 @@ def find_metro_matrix(
             results[key] = future.result()
 
     # Get results.
+    gdp_metro, gdp_citations = results["gdp"]
     forbes_ratings, search_citations = results["forbes"]
     labor_force_stats, labor_force_citations = results["labor"]
     state_tax, state_tax_citations = results["tax"]
@@ -86,34 +83,35 @@ def find_metro_matrix(
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
+        gdp_citations,
         labor_force_citations,
         median_hourly_citations,
         search_citations,
         state_tax_citations,
-        union_citations
+        union_citations,
     )
     citations = {"citations": metro_matrix_citations}
 
     # Merge all data points.
     merged_df = merge_dataframes(
         df_list=[
+            gdp_metro,
             forbes_ratings,
             labor_force_stats,
             median_hourly_wages,
             state_tax,
-            state_union_employment
+            state_union_employment,
         ],
         how="left",
-        on="city_name"
+        on="city_name",
     )
 
     metro_matrix = format_metro_matrix_data(merged_df)
     return metro_matrix, citations
 
 
-def format_metro_matrix_data(
-    df: pd.DataFrame
-) -> pd.DataFrame:
+
+def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     Args:
@@ -124,25 +122,22 @@ def format_metro_matrix_data(
     """
     # Rename columns to match template.
     col_rename_mapping = {
+        "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
         "forbes_ranking": "Forbes Best Places for Business",
         "labor_force": "Labor Force, not seasonally-adjusted",
         "unemployment_rate": "Unemployment Rate",
         "median_hourly_wage": "Median Hourly Wage -All Occupations ($)",
         "tax_rate": "State Corporate Income Tax Rates (Maximum)",
-        "union_employed": "Union Members, Percent of Employed (State)"
+        "union_employed": "Union Members, Percent of Employed (State)",
     }
 
-    df.rename(
-        columns=col_rename_mapping, inplace=True)
+    df.rename(columns=col_rename_mapping, inplace=True)
 
-    df.set_index("city_name", inplace= True)
+    df.set_index("city_name", inplace=True)
     return df.T
 
 
-
-def search_google_for_forbes(
-    city_names: List[str]
-):
+def search_google_for_forbes(city_names: List[str]):
     """Uses search tool to get best rankings."""
     model = GeminiSDKManager()
 
@@ -163,11 +158,11 @@ def search_google_for_forbes(
     ]
 
     grounded_search_response = model.send_request(
-        contents=[search_tool_prompt],
-        tools=tools
+        contents=[search_tool_prompt], tools=tools
     )
     search_citations = model.get_url_citations(
-        response=grounded_search_response)
+        response=grounded_search_response
+    )
 
     # Format raw search text response to a JSON.
     # Controlled generation schema.
@@ -177,8 +172,7 @@ def search_google_for_forbes(
             "type": "OBJECT",
             "properties": {
                 "city_name": {"type": "STRING"},
-                "ranking": {"type": "INTEGER"}
-
+                "ranking": {"type": "INTEGER"},
             },
             "required": ["city_name", "ranking"],
         },
@@ -196,7 +190,7 @@ def search_google_for_forbes(
         model.send_request(
             contents=format_output_schema_prompt,
             response_schema=rankings_output_schema,
-            response_mime_type="application/json"
+            response_mime_type="application/json",
         ).text
     )
 
@@ -209,17 +203,16 @@ def search_google_for_forbes(
         city_name = location.split(", ")[0]
         ranking = city_res.get("ranking", None)
         if city_name is not None and ranking is not None:
-            cities_forbes_rankings.append({
-                "city_name": city_name,
-                "forbes_ranking": ranking
-            })
+            cities_forbes_rankings.append(
+                {"city_name": city_name, "forbes_ranking": ranking}
+            )
 
     cities_forbes_rankings_df = pd.DataFrame(
         columns=[
             "city_name",
             "forbes_ranking",
         ],
-        data=cities_forbes_rankings
+        data=cities_forbes_rankings,
     )
 
     return cities_forbes_rankings_df, search_citations
