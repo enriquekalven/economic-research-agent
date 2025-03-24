@@ -30,6 +30,11 @@ from app.tools.bls_functions import (
     find_state_tax_rate,
     find_state_union_employment
 )
+from app.tools.jobseq_functions import (
+    empl_and_wages_by_industry,
+    process_naics_requests,
+    unskilled_labor_wages,
+)
 from app.tools.company_relocation_functions import find_company_relocation
 from app.tools.hq_relocation_functions import find_hq_relocation
 from app.tools.metro_matrix_functions import find_metro_matrix
@@ -55,7 +60,10 @@ tools = [
     find_median_hourly_wages,
     find_metro_matrix,
     find_state_tax_rate,
-    find_state_union_employment
+    find_state_union_employment,
+    empl_and_wages_by_industry,
+    process_naics_requests,
+    unskilled_labor_wages,
 ]
 
 # 2. Set up the language model
