@@ -121,53 +121,69 @@ def get_empl_and_wages_by_industry(
         return "No Sub-Sectors found within the requested Industry."
 
     # For each child sector and city, get Employment and Current Avg Ann Wages.
-    city_where_clause = f"(LOWER(metro) LIKE LOWER('%{city_names[0]}%')"
     if len(naics_dig)==1:
         naics_where_clause = "('" + naics_dig["code"][0] + "')"
     else:
         naics_where_clause = tuple(naics_dig["code"])
-    if len(city_names)>1:
-        for city in city_names[1:]:
-            city_where_clause = city_where_clause + f""" OR
-                LOWER(metro) LIKE LOWER('%{city}%')"""
-    city_where_clause = city_where_clause + ")"
+    # Query for each city.
     sub_sector_sql = f"""
-    SELECT
-        SUBSTR(code, 1, {max_length}) AS code,
-        SUM(empl) AS sum_total_empl_int,
-        SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int,
-        metro
-    FROM
-        {INDUSTRY_2024Q3} t
-    WHERE
-        {city_where_clause}
-        AND
-        SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
-    GROUP BY metro, code;"""
-
+        SELECT
+            SUBSTR(code, 1, {max_length}) AS code,
+            SUM(empl) AS sum_total_empl_int,
+            SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int
+        FROM
+            {INDUSTRY_2024Q3} t
+        WHERE
+            LOWER(metro) LIKE LOWER('%{city_names[0]}%')
+            AND
+            SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
+        GROUP BY metro, code;"""
     sub_sector_data = execute_bq_query_to_df(
         project=PROJECT_ID,
         query=sub_sector_sql
     )
-
-    # Combine with naics 3 dig table
+    # Combine with NAICS data.
     merged_df = merge_dataframes(
         df_list=[naics_dig, sub_sector_data],
-        how="left",
+        how="inner",
         on="code"
     )
-
-    empl_wages_table = merged_df[[
-        "2022 NAICS US Title",
-        "sum_total_empl_int",
-        "avg_avg_ann_wages_int", "metro"
-    ]]
+    if len(city_names)>1:
+        for city in city_names[1:]:
+            sub_sector_sql = f"""
+            SELECT
+                SUBSTR(code, 1, {max_length}) AS code,
+                SUM(empl) AS sum_total_empl_int,
+                SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int
+            FROM
+                {INDUSTRY_2024Q3} t
+            WHERE
+                LOWER(metro) LIKE LOWER('%{city}%')
+                AND
+                SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
+            GROUP BY metro, code;"""
+            sub_sector_data = execute_bq_query_to_df(
+                project=PROJECT_ID,
+                query=sub_sector_sql
+            )
+            merged_df = merge_dataframes(
+                df_list=[merged_df, sub_sector_data],
+                how="inner",
+                on="code"
+            )
+    # Format to mirror template.
+    empl_wages_table = merged_df.drop("code", axis=1)
     empl_wages_table = empl_wages_table.rename(columns = {
-        "2022 NAICS US Title": "Industry",
-        "sum_total_empl_int": "Employment",
-        "avg_avg_ann_wages_int": "Current Avg Ann Wages",
-        "metro": "Metro"
-    }) # formatted with same names as template.
+        "2022 NAICS US Title": "Industry"
+    })
+    new_names = []
+    for city in city_names:
+        new_names.append(f"{city} Employment")
+        new_names.append(f"{city} Current Avg Ann Wages")
+    last_n_cols = range(1, len(empl_wages_table.columns))
+    original_last_cols = empl_wages_table.columns[last_n_cols].tolist()
+    rename_dict = dict(zip(original_last_cols, new_names))
+    empl_wages_table = empl_wages_table.rename(columns=rename_dict)
     return empl_wages_table
 
 
@@ -231,15 +247,38 @@ def get_unskilled_labor_wages(
         soc_where_clause = soc_where_clause + f" OR soc = '{soc}'"
     soc_where_clause = soc_where_clause + ")"
     unskilled_labor_query = f"""SELECT occupation, mean, entry_level,
-        experienced, metro FROM {OCCUPATION_WAGES_2024Q3} WHERE
-        {soc_where_clause} AND {city_where_clause};"""
+        experienced FROM {OCCUPATION_WAGES_2024Q3} WHERE
+        {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city_names[0]}%');"""
     # Get Instustry Occupation Data
-    unskilled_labor = execute_bq_query_to_df(
+    merged_df = execute_bq_query_to_df(
         project=PROJECT_ID,
         query=unskilled_labor_query
     )
-
-    return unskilled_labor
+    if len(city_names)>1:
+        for city in city_names[1:]:
+            unskilled_labor_query = f"""SELECT occupation, mean, entry_level,
+                experienced FROM {OCCUPATION_WAGES_2024Q3} WHERE
+                {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city}%');"""
+            unskilled_labor = execute_bq_query_to_df(
+                project=PROJECT_ID,
+                query=unskilled_labor_query
+            )
+            merged_df = merge_dataframes(
+                df_list=[merged_df, unskilled_labor],
+                how="inner",
+                on="occupation"
+            )
+    # Format to mirror template.
+    new_names = []
+    for city in city_names:
+        new_names.append(f"{city} Average")
+        new_names.append(f"{city} Entry Level")
+        new_names.append(f"{city} Experienced")
+    last_n_cols = range(1, len(merged_df.columns))
+    original_last_cols = merged_df.columns[last_n_cols].tolist()
+    rename_dict = dict(zip(original_last_cols, new_names))
+    merged_df = merged_df.rename(columns=rename_dict)
+    return merged_df
 
 
 def get_labor_market_info(
