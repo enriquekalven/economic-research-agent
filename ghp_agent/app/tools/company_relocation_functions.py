@@ -97,5 +97,4 @@ def find_company_relocation(
     empl_wages_by_industry= results["empl_wages"]
     unskilled_labor = results["labor_wages"]
     citations = {"citations": "https://jobseq.eqsuite.com/"}
-    print(empl_wages_by_industry, unskilled_labor, citations)
     return empl_wages_by_industry, unskilled_labor, citations
