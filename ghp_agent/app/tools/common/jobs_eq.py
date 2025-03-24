@@ -121,6 +121,10 @@ def get_empl_and_wages_by_industry(
 
     # For each child sector and city, get Employment and Current Avg Ann Wages.
     city_where_clause = f"(LOWER(metro) LIKE LOWER('%{city_names[0]}%')"
+    if len(naics_dig)==1:
+        naics_where_clause = "('" + naics_dig["code"][0] + "')"
+    else:
+        naics_where_clause = tuple(naics_dig["code"])
     if len(city_names)>1:
         for city in city_names[1:]:
             city_where_clause = city_where_clause + f""" OR
@@ -137,7 +141,7 @@ def get_empl_and_wages_by_industry(
     WHERE
         {city_where_clause}
         AND
-        SUBSTR(code, 1, {max_length+1}) IN {tuple(naics_dig["code"])}
+        SUBSTR(code, 1, {max_length+1}) IN {naics_where_clause}
     GROUP BY metro, code;"""
 
     sub_sector_data = execute_bq_query_to_df(
