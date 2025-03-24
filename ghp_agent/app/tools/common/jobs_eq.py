@@ -167,7 +167,7 @@ def get_empl_and_wages_by_industry(
         "sum_total_empl_int": "Employment",
         "avg_avg_ann_wages_int": "Current Avg Ann Wages",
         "metro": "Metro"
-    })# formatted with same names as template.
+    }) # formatted with same names as template.
     return empl_wages_table
 
 
@@ -189,7 +189,7 @@ def get_unskilled_labor_wages(
 
     # Create the metro where clause.
     city_where_clause = f"(LOWER(metro) LIKE LOWER('%{city_names[0]}%')"
-    if len(city_names)>1:
+    if len(city_names) > 1:
         for city in city_names[1:]:
             city_where_clause = city_where_clause + f""" OR LOWER(metro)
                 LIKE LOWER('%{city}%')"""
@@ -212,7 +212,7 @@ def get_unskilled_labor_wages(
     response = model.send_request(
         contents=occupation_selection_prompt,
         response_mime_type = "application/json",
-        )
+    )
 
     # Turn into dict.
     try:
