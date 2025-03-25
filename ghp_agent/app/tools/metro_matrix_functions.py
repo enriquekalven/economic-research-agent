@@ -5,7 +5,6 @@
 
 import concurrent.futures
 import json
-import logging
 from typing import Any, Dict, List, Tuple
 
 from google.genai import types
@@ -13,6 +12,7 @@ from langchain_core.tools import tool
 import pandas as pd
 
 from app.tools.common.bea_api import get_metros_gdps
+from app.tools.common.census_gov import get_census_stats
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
@@ -23,11 +23,6 @@ from app.tools.common.gemini_sdk import GeminiSDKManager
 from app.utils.helper import join_sets, merge_dataframes
 
 LABOR_STATS_DATASET = "bls"
-
-
-# Logger.
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 @tool
@@ -46,7 +41,7 @@ def find_metro_matrix(
             Each dictionary should follow this schema:
             {{
                 "city_name": "",
-                "state": "",
+                "state": "[Full name of state]",
                 "state_abbreviation": ""
             }}
 
@@ -60,6 +55,7 @@ def find_metro_matrix(
     # Parallelize functions needed for metro matrix.
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
+            executor.submit(get_census_stats, city_names): "census",
             executor.submit(search_google_for_forbes, city_names): "forbes",
             executor.submit(get_labor_force_stats, city_names): "labor",
             executor.submit(get_state_tax_rates, metro_areas): "tax",
@@ -74,6 +70,7 @@ def find_metro_matrix(
             results[key] = future.result()
 
     # Get results.
+    census_stats, census_citations = results["census"]
     gdp_metro, gdp_citations = results["gdp"]
     forbes_ratings, search_citations = results["forbes"]
     labor_force_stats, labor_force_citations = results["labor"]
@@ -89,12 +86,14 @@ def find_metro_matrix(
         search_citations,
         state_tax_citations,
         union_citations,
+        census_citations
     )
     citations = {"citations": metro_matrix_citations}
 
     # Merge all data points.
     merged_df = merge_dataframes(
         df_list=[
+            census_stats,
             gdp_metro,
             forbes_ratings,
             labor_force_stats,
@@ -122,6 +121,12 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     # Rename columns to match template.
     col_rename_mapping = {
+        "total_population": "Total Population",
+        "median_age": "Population above 25 age",
+        "population_above_25": "Median Age",
+        "percent_foreign_born": "Percent Foreign Born",
+        "percent_bachelors": "Percent Earned Bachelor's Degree or Higher (25+)",
+        "percent_masters": "Percent Earned Graduate or Professional Degree (25+)", # pylint: disable=line-too-long
         "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
         "forbes_ranking": "Forbes Best Places for Business",
         "labor_force": "Labor Force, not seasonally-adjusted",

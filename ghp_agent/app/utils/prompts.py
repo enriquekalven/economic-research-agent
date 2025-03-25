@@ -34,7 +34,8 @@ class Prompts:
         If a user request is ambiguous, ask clarifying questions to determine the exact function and parameters needed. Do not make assumptions about missing information.
 
         Return the response in markdown. If response is a list, display as a table. Include ALL tables returned.
-        Always return citations as a bulleted list if they are part of your tool response.
+
+        You must always return citations as a bulleted list if they are part of your tool response!
         """
 
     def occupation_selection_prompt(
