@@ -13,6 +13,7 @@ from langchain_core.tools import tool
 import pandas as pd
 
 from app.tools.common.bea_api import get_metros_gdps
+from app.tools.common.census_gov import get_city_statistics
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
@@ -23,11 +24,6 @@ from app.tools.common.gemini_sdk import GeminiSDKManager
 from app.utils.helper import join_sets, merge_dataframes
 
 LABOR_STATS_DATASET = "bls"
-
-
-# Logger.
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 @tool
@@ -66,13 +62,14 @@ def find_metro_matrix(
             executor.submit(get_median_hourly_wage, city_names): "wage",
             executor.submit(get_metros_gdps, city_names): "gdp",
             executor.submit(get_union_employment, metro_areas): "union",
+            executor.submit(get_city_statistics, metro_areas): "census",
         }
 
         results = {}
         for future in concurrent.futures.as_completed(futures):
             key = futures[future]
             results[key] = future.result()
-
+    # print(results)
     # Get results.
     gdp_metro, gdp_citations = results["gdp"]
     forbes_ratings, search_citations = results["forbes"]
@@ -80,6 +77,7 @@ def find_metro_matrix(
     state_tax, state_tax_citations = results["tax"]
     median_hourly_wages, median_hourly_citations = results["wage"]
     state_union_employment, union_citations = results["union"]
+    census_data, census_citations = results["census"]
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
@@ -89,6 +87,7 @@ def find_metro_matrix(
         search_citations,
         state_tax_citations,
         union_citations,
+        census_citations
     )
     citations = {"citations": metro_matrix_citations}
 
@@ -101,6 +100,7 @@ def find_metro_matrix(
             median_hourly_wages,
             state_tax,
             state_union_employment,
+            census_data
         ],
         how="left",
         on="city_name",
