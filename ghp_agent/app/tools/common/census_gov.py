@@ -88,7 +88,6 @@ def get_one_city_statistics(
     )
 
     if not result:
-        print("No data found.")
         return {}
 
     data = result[0]

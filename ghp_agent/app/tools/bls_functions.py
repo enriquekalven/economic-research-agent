@@ -36,7 +36,7 @@ def find_labor_force_stats(
     labor_force_df, labor_force_citations = get_labor_force_stats(
         city_names=city_names)
 
-    return labor_force_df, labor_force_citations
+    return labor_force_df, {"citations": labor_force_citations}
 
 
 @tool
@@ -57,7 +57,7 @@ def find_median_hourly_wages(
     median_hourly_wages, median_hourly_citations = get_median_hourly_wage(
         city_names=city_names)
 
-    return median_hourly_wages, median_hourly_citations
+    return median_hourly_wages, {"citations": median_hourly_citations}
 
 
 @tool
@@ -83,7 +83,7 @@ def find_state_union_employment(
 
     state_union_employment, union_citations = get_union_employment(
         metros=metros, drop_state=False)
-    return state_union_employment, union_citations
+    return state_union_employment, {"citations": union_citations}
 
 
 @tool
@@ -113,4 +113,4 @@ def find_state_tax_rate(
     except Exception as e:
         return e
 
-    return state_tax_rate_df, state_tax_citations
+    return state_tax_rate_df, {"citations": state_tax_citations}

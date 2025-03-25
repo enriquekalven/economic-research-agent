@@ -41,7 +41,7 @@ def find_metro_matrix(
             Each dictionary should follow this schema:
             {{
                 "city_name": "",
-                "state": "",
+                "state": "[Full name of state]",
                 "state_abbreviation": ""
             }}
 
@@ -126,7 +126,7 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
         "population_above_25": "Median Age",
         "percent_foreign_born": "Percent Foreign Born",
         "percent_bachelors": "Percent Earned Bachelor's Degree or Higher (25+)",
-        "percent_masters": "Percent Earned Graduate or Professional Degree (25+)",
+        "percent_masters": "Percent Earned Graduate or Professional Degree (25+)", # pylint: disable=line-too-long
         "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
         "forbes_ranking": "Forbes Best Places for Business",
         "labor_force": "Labor Force, not seasonally-adjusted",
