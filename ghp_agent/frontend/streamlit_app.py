@@ -20,6 +20,8 @@ main streamlit file
 # mypy: disable-error-code="arg-type"
 import json
 import uuid
+import os
+import base64
 from collections.abc import Sequence
 from functools import partial
 from typing import Any
@@ -54,7 +56,7 @@ def setup_page() -> None:
         initial_sidebar_state="auto",
         menu_items=None,
     )
-    st.title("Playground")
+    # st.title("")
     st.markdown(MARKDOWN_STR, unsafe_allow_html=True)
 
 
@@ -67,6 +69,7 @@ def initialize_session_state() -> None:
         st.session_state.user_id = USER
         st.session_state["gcs_uris_to_be_sent"] = ""
         st.session_state.modified_prompt = None
+        st.session_state.first_prompt = False
         st.session_state.session_db = LocalChatMessageHistory(
             session_id=st.session_state["session_id"],
             user_id=st.session_state["user_id"],
@@ -181,6 +184,7 @@ def handle_user_input(side_bar: SideBar) -> None:
     """Process user input, generate AI response, and update chat history."""
     prompt = st.chat_input() or st.session_state.modified_prompt
     if prompt:
+        st.session_state.first_prompt = True
         st.session_state.modified_prompt = None
         parts = get_parts_from_files(
             upload_gcs_checkbox=st.session_state.checkbox_state,
@@ -269,11 +273,172 @@ def display_feedback(side_bar: SideBar) -> None:
                 run_id=st.session_state.run_id,
             )
 
+def get_image_url_from_path(image_path):
+    """Gets a data URL from a local image path."""
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+            return f"data:image/jpg;base64,{encoded_string}" #or png, etc.
+    else:
+        return None
+
+
+css_string = """
+    <style>
+        iframe {
+            height: 80vh;
+        }
+
+        .stChatInput {
+            width: 65%;
+            margin: auto;
+        }
+
+        .stChatInput button {
+            height: 100%;
+        }
+
+        .stChatInput div,
+        .stChatInput textarea {
+            background: transparent;
+            border: none;
+        }
+
+        .stChatInput .st-emotion-cache-yd4u6l {
+            border: 2px solid #ddd; /* Light border */
+        }
+
+        .stChatInput textarea,
+        .stChatInput .st-emotion-cache-yd4u6l {
+            max-width: 100%;
+            padding: 28px 15px;
+            border-radius: 25px;
+            font-size: 16px;
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            outline: none; /* Remove default focus outline */
+        }
+
+        .stChatMessage {
+            background-color: white;
+        }
+    </style>
+    """
+
+html_string = f"""
+<head>
+<script>
+function myFunction(arg) {{
+    alert(arg);
+}}
+</script>
+<style>
+    body {{
+        font-family: sans-serif;
+    }}
+  .main-message {{
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }}
+
+  .main-message h1 {{
+    font-family: sans-serif;
+    font-size: 3em;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+    background: linear-gradient(to right, #71CC98, #00A0DD,#0076BB, #003B5C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    padding: 20px;
+    border-radius: 10px;
+  }}
+
+  .prompt-boxes {{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }}
+   .prompt-box {{
+        margin: 10px;
+        padding: 10px;
+        border-radius: 30px;
+        border: 1px solid #D3DBE5;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+   }}
+    .prompt-box img{{
+        margin: 10px;
+    }}
+    .header {{
+        background-color: white;
+    }}
+
+    .chat-message.user, .chat-message.assistant {{
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        width: 80%;
+    }}
+    .chat-message.user {{
+        background-color: #e6f7ff;
+        margin-left: auto;
+    }}
+    .chat-message.assistant {{
+        background-color: #f0f0f0;
+        margin-right: auto;
+    }}
+    .stChatInput textarea {{
+        border-radius: 1rem;
+        padding: 0.5rem 1rem;
+    }}
+    .main-content{{
+        width: 60%;
+        margin: auto;
+    }}
+</style>
+</head>
+<body>
+  <div class="header">
+    <img style="width: 500px" src="{get_image_url_from_path("frontend/assets/logo.png")}" alt="logo"/>
+  </div>
+  <div class="main-content"> 
+    <div class="main-message">
+        <h1>Which data report can I help you with?</h1>
+    </div>
+    <div class="prompt-boxes">
+        <div class="prompt-box" onclick="myFunction('I want to gather data on Metro Matrix.')">
+            <img src="{get_image_url_from_path("frontend/assets/home.png")}" alt="home"/>
+            <div>I want to gather data on <b>Metro Matrix.</b></div>
+        </div>
+        <div class="prompt-box" onclick="myFunction('Hello2')">
+            <img src="{get_image_url_from_path("frontend/assets/location.png")}" alt="location"/>
+            <div>I want to gather data on <b>Headquarters Relocation.</b></div>
+        </div>
+        <div class="prompt-box" onclick="myFunction('Hello3')">
+            <img style="width: 23px" src="{get_image_url_from_path("frontend/assets/company.png")}" alt="company"/>
+            <div>I want to gather data on <b>Company Relocation.</b></div>
+        </div>
+    </div>
+  </div>
+
+</body>
+"""
 
 def main() -> None:
     """Main function to set up and run the Streamlit app."""
     setup_page()
     initialize_session_state()
+    print("::::::::")
+    print(st.session_state.first_prompt)
+    if st.session_state.first_prompt is False:
+        st.markdown(css_string, unsafe_allow_html=True) # Syntax error here
+        st.components.v1.html(html_string)
     side_bar = SideBar(st=st)
     side_bar.init_side_bar()
     display_messages()
