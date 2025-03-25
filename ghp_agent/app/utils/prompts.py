@@ -36,6 +36,7 @@ class Prompts:
         Return the response in markdown. If response is a list, display as a table. Include ALL tables returned.
 
         You must always return citations as a bulleted list if they are part of your tool response!
+        Each URL citation should be a separate bullet point. 
         """
 
     def occupation_selection_prompt(
