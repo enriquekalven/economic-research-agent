@@ -5,7 +5,6 @@
 
 import concurrent.futures
 import json
-import logging
 from typing import Any, Dict, List, Tuple
 
 from google.genai import types
