@@ -285,10 +285,6 @@ def get_image_url_from_path(image_path):
 
 css_string = """
     <style>
-        iframe {
-            height: 80vh;
-        }
-
         .stChatInput {
             width: 65%;
             margin: auto;
@@ -324,25 +320,26 @@ css_string = """
     </style>
     """
 
-html_string = f"""
-<head>
+html_script = """
 <script>
 function myFunction(arg) {{
     alert(arg);
 }}
 </script>
+"""
+html_style = """
 <style>
-    body {{
+    body {
         font-family: sans-serif;
-    }}
-  .main-message {{
+    }
+  .main-message {
     height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
-  }}
+  }
 
-  .main-message h1 {{
+  .main-message h1 {
     font-family: sans-serif;
     font-size: 3em;
     font-weight: bold;
@@ -354,14 +351,14 @@ function myFunction(arg) {{
     display: inline-block;
     padding: 20px;
     border-radius: 10px;
-  }}
+  }
 
-  .prompt-boxes {{
+  .prompt-boxes {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-    }}
-   .prompt-box {{
+    }
+   .prompt-box {
         margin: 10px;
         padding: 10px;
         border-radius: 30px;
@@ -371,42 +368,46 @@ function myFunction(arg) {{
         display: flex;
         justify-content: center;
         align-items: center;
-   }}
-    .prompt-box img{{
+   }
+    .prompt-box img{
         margin: 10px;
-    }}
-    .header {{
+    }
+    .header {
         background-color: white;
-    }}
+    }
 
-    .chat-message.user, .chat-message.assistant {{
+    .chat-message.user, .chat-message.assistant {
         padding: 0.5rem 1rem;
         border-radius: 0.5rem;
         margin-bottom: 0.5rem;
         width: 80%;
-    }}
-    .chat-message.user {{
+    }
+    .chat-message.user {
         background-color: #e6f7ff;
         margin-left: auto;
-    }}
-    .chat-message.assistant {{
+    }
+    .chat-message.assistant {
         background-color: #f0f0f0;
         margin-right: auto;
-    }}
-    .stChatInput textarea {{
+    }
+    .stChatInput textarea {
         border-radius: 1rem;
         padding: 0.5rem 1rem;
-    }}
-    .main-content{{
+    }
+    .main-content{
         width: 60%;
         margin: auto;
-    }}
+    }
 </style>
-</head>
-<body>
+"""
+
+
+html_string_header = f"""
   <div class="header">
     <img style="width: 500px" src="{get_image_url_from_path("frontend/assets/logo.png")}" alt="logo"/>
   </div>
+"""
+html_string_main_content = f"""
   <div class="main-content"> 
     <div class="main-message">
         <h1>Which data report can I help you with?</h1>
@@ -426,19 +427,21 @@ function myFunction(arg) {{
         </div>
     </div>
   </div>
-
-</body>
 """
+
+
 
 def main() -> None:
     """Main function to set up and run the Streamlit app."""
     setup_page()
     initialize_session_state()
-    print("::::::::")
-    print(st.session_state.first_prompt)
+    final_html_string = html_script + html_style + html_string_header
+    final_height = 100
+    st.markdown(css_string, unsafe_allow_html=True)
     if st.session_state.first_prompt is False:
-        st.markdown(css_string, unsafe_allow_html=True) # Syntax error here
-        st.components.v1.html(html_string)
+        final_html_string += html_string_main_content
+        final_height = 800
+    st.components.v1.html(final_html_string, height=final_height)
     side_bar = SideBar(st=st)
     side_bar.init_side_bar()
     display_messages()
