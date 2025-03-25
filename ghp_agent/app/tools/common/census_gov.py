@@ -33,7 +33,7 @@ def get_place_fips(city_name, state_fips):
             return place["place"]
     return None
 
-@functools.lru_cache
+# @functools.lru_cache
 def get_city_statistics(metros: List[Dict[str,Any]]):
     city_names = [metro.get("city_name", "") for metro in metros]
     states = [metro.get("state", "") for metro in metros]
@@ -128,3 +128,13 @@ Percent Earned Graduate or Professional Degree (25 yrs and over),
     }
 
     return stats, citations
+
+
+# metros = [
+#       {
+#         "city_name": "atlanta",
+#         "state": "georgia",
+#         "state_abbreviation": "GA"
+#       }
+#     ]
+# print(get_city_statistics(metros))
