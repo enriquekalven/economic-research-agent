@@ -12,7 +12,7 @@ from langchain_core.tools import tool
 import pandas as pd
 
 from app.tools.common.bea_api import get_metros_gdps
-from app.tools.common.census_gov import get_city_statistics
+from app.tools.common.census_gov import get_census_stats
 from app.tools.common.bureau_of_labor import (
     get_labor_force_stats,
     get_median_hourly_wage,
@@ -55,28 +55,28 @@ def find_metro_matrix(
     # Parallelize functions needed for metro matrix.
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
+            executor.submit(get_census_stats, city_names): "census",
             executor.submit(search_google_for_forbes, city_names): "forbes",
             executor.submit(get_labor_force_stats, city_names): "labor",
             executor.submit(get_state_tax_rates, metro_areas): "tax",
             executor.submit(get_median_hourly_wage, city_names): "wage",
             executor.submit(get_metros_gdps, city_names): "gdp",
             executor.submit(get_union_employment, metro_areas): "union",
-            executor.submit(get_city_statistics, metro_areas): "census",
         }
 
         results = {}
         for future in concurrent.futures.as_completed(futures):
             key = futures[future]
             results[key] = future.result()
-    # print(results)
+
     # Get results.
+    census_stats, census_citations = results["census"]
     gdp_metro, gdp_citations = results["gdp"]
     forbes_ratings, search_citations = results["forbes"]
     labor_force_stats, labor_force_citations = results["labor"]
     state_tax, state_tax_citations = results["tax"]
     median_hourly_wages, median_hourly_citations = results["wage"]
     state_union_employment, union_citations = results["union"]
-    census_data, census_citations = results["census"]
 
     # Process citations for matrix.
     metro_matrix_citations = join_sets(
@@ -93,13 +93,13 @@ def find_metro_matrix(
     # Merge all data points.
     merged_df = merge_dataframes(
         df_list=[
+            census_stats,
             gdp_metro,
             forbes_ratings,
             labor_force_stats,
             median_hourly_wages,
             state_tax,
             state_union_employment,
-            census_data
         ],
         how="left",
         on="city_name",
@@ -121,6 +121,12 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
     # Rename columns to match template.
     col_rename_mapping = {
+        "total_population": "Total Population",
+        "median_age": "Population above 25 age",
+        "population_above_25": "Median Age",
+        "percent_foreign_born": "Percent Foreign Born",
+        "percent_bachelors": "Percent Earned Bachelor's Degree or Higher (25+)",
+        "percent_masters": "Percent Earned Graduate or Professional Degree (25+)",
         "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
         "forbes_ranking": "Forbes Best Places for Business",
         "labor_force": "Labor Force, not seasonally-adjusted",

@@ -3,15 +3,21 @@
 #  agreement with Google.
 """Census API functions for tools."""
 
-from census import Census
 import requests
-import pandas as pd
 from typing import Any, Dict, List
-import functools
+
+from census import Census
+import pandas as pd
+
+from app.utils.helper import execute_bq_query_to_df
 
 
+# TODO: upload to secret manager.
 CENSUS_API_KEY = "04fe998bc89ff6fef628edd3281c2bc170448718"
 c = Census(CENSUS_API_KEY)
+
+PROJECT_ID = "ghp-poc"
+CENSUS_DATASET = "census"
 
 
 def get_state_fips(state_name):
@@ -19,10 +25,11 @@ def get_state_fips(state_name):
     response = requests.get(url, timeout=100)
     data = response.json()
 
-    for row in data[1:]:  # Skip header row
+    for row in data[1:]:  # Skip header row.
         if row[0].lower() == state_name.lower():
-            return row[1]  # Return the state FIPS code
+            return row[1]  # Return the state FIPS code.
     return None
+
 
 def get_place_fips(city_name, state_fips):
     places = c.acs1.get(["NAME"],
@@ -33,45 +40,23 @@ def get_place_fips(city_name, state_fips):
             return place["place"]
     return None
 
-# @functools.lru_cache
-def get_city_statistics(metros: List[Dict[str,Any]]):
-    city_names = [metro.get("city_name", "") for metro in metros]
-    states = [metro.get("state", "") for metro in metros]
-    all_stats = []
-    for city_name, state in zip(city_names, states):
-        stats = get_one_city_statistics(city_name, state)
-        all_stats.append(stats)
-    return pd.DataFrame(all_stats)
 
 def get_one_city_statistics(
         city_name: str,
         state_name: str
     ):
     """Fetches various statistics for the given city_name and state_name
- from Census API
-Median Age: "B01002_001E"
-Total population 25+ yrs: "B15003_001E"
-Percent Foreign Born: 
-"B05012_003E" (Foreign-born population) / "B01003_001E" (Total population)
-Percent Earned Bachelor's Degree or Higher (25 yrs and over),
- 2023: "B15003_022E", "B15003_023E", "B15003_024E",
-   "B15003_025E" (Sum of these categories) / "B15003_001E"
-Percent Earned Graduate or Professional Degree (25 yrs and over),
- 2023: "B15003_024E" (Master's),
-   "B15003_025E" (Doctorate/Professional) / "B15003_001E"
-"""
+    from Census API.
+    """
 
     citations = "https://api.census.gov/data/2021/pep/population?get=NAME,STATE&for=state:*" #pylint: disable=line-too-long
-
-    # return {'city_name': 'San Francisco', 'Total Population': 808437.0, 'Population above 25 age': 644349.0, 'Median Age': 40.4, 'Percent Foreign Born': 33.174755732357625, "Percent Earned Bachelor's Degree or Higher (25+)": 61.39359260276651, 'Percent Earned Graduate or Professional Degree (25+)': 9.231177514049064}, citations #pylint: disable=line-too-long
-
-    print(f"Fetching data for {city_name}, {state_name}")
 
     state_fips = get_state_fips(state_name)
     if not state_fips:
         return f"State '{state_name}' not found."
 
     place_fips = get_place_fips(city_name, state_fips)
+
     if not place_fips:
         return f"City '{city_name}' not found in {state_name}."
 
@@ -79,16 +64,21 @@ Percent Earned Graduate or Professional Degree (25 yrs and over),
         "median_age": "B01002_001E",
         "foreign_born": "B05012_003E",
         "total_population": "B01003_001E",
-        "bachelors_higher": ["B15003_022E", "B15003_023E",
-                              "B15003_024E", "B15003_025E"],
+        "bachelors_higher": [
+            "B15003_022E",
+            "B15003_023E",
+            "B15003_024E",
+            "B15003_025E"
+        ],
         "graduate_degree": ["B15003_024E", "B15003_025E"],
         "total_25plus": "B15003_001E"
     }
 
 
-    # Fetch data
+    # Fetch data.
     result = c.acs1.get(
-        [variables["median_age"],
+        [
+            variables["median_age"],
           variables["foreign_born"],
           variables["total_population"],
           *variables["bachelors_higher"],
@@ -106,20 +96,25 @@ Percent Earned Graduate or Professional Degree (25 yrs and over),
     total_population = float(data.get(variables["total_population"], 0))
     total_25plus = float(data.get(variables["total_25plus"], 0))
 
-    bachelors_higher_count = sum(float(data.get(var, 0)) for var in variables["bachelors_higher"]) #pylint: disable=line-too-long
-    graduate_degree_count = sum(float(data.get(var, 0)) for var in variables["graduate_degree"]) #pylint: disable=line-too-long
+    bachelors_higher_count = sum(
+        float(data.get(var, 0))
+        for var in variables["bachelors_higher"]
+    )
+    graduate_degree_count = sum(
+        float(data.get(var, 0))
+        for var in variables["graduate_degree"]
+    )
     foreign_born_count = float(data.get(variables["foreign_born"], 0))
 
-    # print(data)
     stats = {
         "city_name": city_name,
         "Total Population": total_population,
         "Population above 25 age": total_25plus,
         "Median Age": float(data.get(variables["median_age"], 0)),
-        "Percent Foreign Born": 
+        "Percent Foreign Born":
         (foreign_born_count / total_population)\
               * 100 if total_population else 0,
-        "Percent Earned Bachelor's Degree or Higher (25+)": 
+        "Percent Earned Bachelor's Degree or Higher (25+)":
             (bachelors_higher_count / total_25plus)\
                   * 100 if total_25plus else 0,
         "Percent Earned Graduate or Professional Degree (25+)":
@@ -130,11 +125,60 @@ Percent Earned Graduate or Professional Degree (25 yrs and over),
     return stats, citations
 
 
-# metros = [
-#       {
-#         "city_name": "atlanta",
-#         "state": "georgia",
-#         "state_abbreviation": "GA"
-#       }
-#     ]
-# print(get_city_statistics(metros))
+def get_city_statistics(metros: List[Dict[str,Any]]):
+    city_names = [metro.get("city_name", "") for metro in metros]
+    states = [metro.get("state", "") for metro in metros]
+    all_stats = []
+    for city_name, state in zip(city_names, states):
+        stats = get_one_city_statistics(city_name, state)
+        all_stats.append(stats)
+    return pd.DataFrame(all_stats)
+
+
+def get_census_stats(city_names: List[Dict[str, Any]]):
+    """Query BQ for censs stats."""
+    census_table = "census_sample"
+
+    city_name_lower_case = [city_name.lower() for city_name in city_names]
+    city_names_regex = "|".join(city_name_lower_case)
+
+    column_name_to_match = "city_name"
+
+    census_query = f"""
+    SELECT
+        city_name,
+        total_population,
+        median_age,
+        population_above_25,
+        CONCAT(FORMAT('%#.2f', CAST(percent_foreign_born AS FLOAT64)), '% (2021)') AS percent_foreign_born,
+        CONCAT(FORMAT('%#.2f', CAST(percent_bachelors AS FLOAT64)), '% (2021)') AS percent_bachelors,
+        CONCAT(FORMAT('%#.2f',CAST(percent_masters AS FLOAT64)), '% (2021)') AS percent_masters,
+        source
+    FROM `{PROJECT_ID}.{CENSUS_DATASET}.{census_table}`
+    WHERE REGEXP_CONTAINS(
+        LOWER({column_name_to_match}),
+        '{city_names_regex}'
+    );
+    """
+
+    census_stats = execute_bq_query_to_df(
+        project=PROJECT_ID,
+        query=census_query
+    )
+
+    def capitalize_city_name(city_name):
+        return city_name.capitalize()
+
+    census_stats["city_name"] = census_stats["city_name"].apply(
+        capitalize_city_name)
+
+    # Citations.
+    citations = set(census_stats["source"].unique())
+
+    # Drop citation column.
+    census_stats.drop(
+        ["source"],
+        inplace=True,
+        axis=1
+    )
+    return census_stats, citations
