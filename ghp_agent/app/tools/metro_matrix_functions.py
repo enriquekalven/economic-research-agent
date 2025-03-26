@@ -120,23 +120,11 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
         Dataframe to display to user for metro matrix.
     """
 
-    df["total_population"] = df["total_population"].astype(float).astype(int)
-    df["total_population"] = df["total_population"].apply(
-        lambda x: "{:,}".format(x) if pd.notna(x) else x) # pylint: disable=consider-using-f-string
-
-    df["population_above_25"] = df["population_above_25"].astype(
-        float
-    ).astype(int)
-    df["population_above_25"] = df["population_above_25"].apply(
-        lambda x: "{:,}".format(x) if pd.notna(x) else x) # pylint: disable=consider-using-f-string
-
-
     # Rename columns to match template.
     col_rename_mapping = {
         "total_population": "Total Population",
         "median_age": "Median Age",
         "population_above_25": "Population above 25 age",
-        "percent_foreign_born": "Percent Foreign Born",
         "percent_bachelors": "Percent Earned Bachelor's Degree or Higher (25+)",
         "percent_masters": "Percent Earned Graduate or Professional Degree (25+)", # pylint: disable=line-too-long
         "gdp": "Gross domestic product (GDP) by metropoltian (thousands of current dollars)", # pylint: disable=line-too-long
@@ -148,9 +136,11 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
         "union_employed": "Union Members, Percent of Employed (State)",
     }
 
+
     df.rename(columns=col_rename_mapping, inplace=True)
 
     df.set_index("city_name", inplace=True)
+    print(df.head(2))
     return df.T
 
 

@@ -48,6 +48,7 @@ def get_one_city_statistics(
     """Fetches various statistics for the given city_name and state_name
     from Census API.
     """
+    print(f"Getting census for {city_name}")
 
     citations = "https://api.census.gov/data/2021/pep/population?get=NAME,STATE&for=state:*" #pylint: disable=line-too-long
 
@@ -84,7 +85,7 @@ def get_one_city_statistics(
           *variables["bachelors_higher"],
           *variables["graduate_degree"],
           variables["total_25plus"]],
-        {"for": f"place:{place_fips}", "in": f"state:{state_fips}"}
+        {"for": f"place:{place_fips}", "in": f"state:{state_fips}"},
     )
 
     if not result:
@@ -146,12 +147,11 @@ def get_census_stats(city_names: List[Dict[str, Any]]):
     census_query = f"""
     SELECT
         city_name,
-        total_population,
-        median_age,
-        population_above_25,
-        CONCAT(FORMAT('%#.2f', CAST(percent_foreign_born AS FLOAT64)), '% (2021)') AS percent_foreign_born,
-        CONCAT(FORMAT('%#.2f', CAST(percent_bachelors AS FLOAT64)), '% (2021)') AS percent_bachelors,
-        CONCAT(FORMAT('%#.2f',CAST(percent_masters AS FLOAT64)), '% (2021)') AS percent_masters,
+        CONCAT(total_population, ' (2023)') as total_population,
+        CONCAT(median_age, ' (2023)') as median_age,
+        CONCAT(population_above_25, ' (2023)') as population_above_25,
+        CONCAT(FORMAT('%#.2f', CAST(percent_bachelors AS FLOAT64)), '% (2023)') AS percent_bachelors,
+        CONCAT(FORMAT('%#.2f',CAST(percent_masters AS FLOAT64)), '% (2023)') AS percent_masters,
         source
     FROM `{PROJECT_ID}.{CENSUS_DATASET}.{census_table}`
     WHERE REGEXP_CONTAINS(
