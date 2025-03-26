@@ -149,7 +149,7 @@ def get_empl_and_wages_by_industry(
     # Combine with NAICS data.
     merged_df = merge_dataframes(
         df_list=[naics_dig, data],
-        how="inner",
+        how="left",
         on="code"
     )
     if len(city_names)>1:
@@ -177,7 +177,7 @@ def get_empl_and_wages_by_industry(
             )
             merged_df = merge_dataframes(
                 df_list=[merged_df, data],
-                how="inner",
+                how="left",
                 on="code"
             )
     # Format to mirror template.
@@ -193,6 +193,9 @@ def get_empl_and_wages_by_industry(
     original_last_cols = empl_wages_table.columns[last_n_cols].tolist()
     rename_dict = dict(zip(original_last_cols, new_names))
     empl_wages_table = empl_wages_table.rename(columns=rename_dict)
+    empl_wages_table.dropna(
+        inplace=True
+    )
     return empl_wages_table
 
 
@@ -285,7 +288,7 @@ def get_unskilled_labor_wages(
             )
             merged_df = merge_dataframes(
                 df_list=[merged_df, unskilled_labor],
-                how="inner",
+                how="left",
                 on="occupation"
             )
 
@@ -299,6 +302,9 @@ def get_unskilled_labor_wages(
     original_last_cols = merged_df.columns[last_n_cols].tolist()
     rename_dict = dict(zip(original_last_cols, new_names))
     merged_df = merged_df.rename(columns=rename_dict)
+    merged_df.dropna(
+        inplace=True
+    )
     return merged_df
 
 
