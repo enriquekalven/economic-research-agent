@@ -121,10 +121,14 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     df["total_population"] = df["total_population"].astype(float).astype(int)
-    df["total_population"] = df["total_population"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
+    df["total_population"] = df["total_population"].apply(
+        lambda x: "{:,}".format(x) if pd.notna(x) else x) # pylint: disable=consider-using-f-string
 
-    df["population_above_25"] = df["population_above_25"].astype(float).astype(int)
-    df["population_above_25"] = df["population_above_25"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
+    df["population_above_25"] = df["population_above_25"].astype(
+        float
+    ).astype(int)
+    df["population_above_25"] = df["population_above_25"].apply(
+        lambda x: "{:,}".format(x) if pd.notna(x) else x) # pylint: disable=consider-using-f-string
 
 
     # Rename columns to match template.
