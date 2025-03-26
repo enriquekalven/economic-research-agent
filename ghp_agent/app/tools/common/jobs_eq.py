@@ -193,6 +193,9 @@ def get_empl_and_wages_by_industry(
     original_last_cols = empl_wages_table.columns[last_n_cols].tolist()
     rename_dict = dict(zip(original_last_cols, new_names))
     empl_wages_table = empl_wages_table.rename(columns=rename_dict)
+    empl_wages_table.dropna(
+        inplace=True
+    )
     return empl_wages_table
 
 
@@ -288,8 +291,7 @@ def get_unskilled_labor_wages(
                 how="left",
                 on="occupation"
             )
-    print(unskilled_labor_query)
-    print(merged_df)
+
     # Format to mirror template.
     new_names = []
     for city in city_names:
@@ -300,6 +302,9 @@ def get_unskilled_labor_wages(
     original_last_cols = merged_df.columns[last_n_cols].tolist()
     rename_dict = dict(zip(original_last_cols, new_names))
     merged_df = merged_df.rename(columns=rename_dict)
+    merged_df.dropna(
+        inplace=True
+    )
     return merged_df
 
 
