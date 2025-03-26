@@ -23,7 +23,6 @@ import uuid
 import os
 import base64
 from collections.abc import Sequence
-from functools import partial
 from typing import Any
 
 import streamlit as st
@@ -33,7 +32,6 @@ from streamlit_feedback import streamlit_feedback
 from frontend.side_bar import SideBar
 from frontend.style.app_markdown import MARKDOWN_STR
 from frontend.utils.local_chat_history import LocalChatMessageHistory
-from frontend.utils.message_editing import MessageEditing
 from frontend.utils.multimodal_utils import (
     format_content,
     get_parts_from_files,
@@ -47,6 +45,8 @@ from frontend.utils.stream_handler import (
 USER = "my_user"
 EMPTY_CHAT_NAME = "Empty chat"
 
+USER_ICON_PATH = "frontend/assets/user-icon.png"
+BOT_ICON_PATH = "frontend/assets/bot-icon.png"
 
 def setup_page() -> None:
     """Configure the Streamlit page settings."""
@@ -90,9 +90,9 @@ def display_messages() -> None:
     ]
     tool_calls_map = {}  # Map tool_call_id to tool call input
 
-    for i, message in enumerate(messages):
+    for _, message in enumerate(messages):
         if message["type"] in ["ai", "human"] and message["content"]:
-            display_chat_message(message, i)
+            display_chat_message(message)
         elif message.get("tool_calls"):
             # Store each tool call input mapped by its ID
             for tool_call in message["tool_calls"]:
@@ -112,58 +112,23 @@ def display_messages() -> None:
             raise ValueError(f"Unexpected message type: {message['type']}")
 
 
-def display_chat_message(message: dict[str, Any], index: int) -> None:
-    """Display a single chat message with edit, refresh, and delete options."""
-    chat_message = st.chat_message(message["type"])
+def display_chat_message(message: dict[str, Any]) -> None:
+    """Display a single chat message."""
+    if message["type"] == "human":
+        icon_path = USER_ICON_PATH
+    elif message["type"] == "ai":
+        icon_path = BOT_ICON_PATH
+    else:
+        icon_path = None
+
+    # Check if the icon exists before using it
+    if icon_path and not os.path.exists(icon_path):
+        st.error(f"Image not found at: {icon_path}")
+        icon_path = None
+
+    chat_message = st.chat_message(message["type"], avatar=icon_path)
     with chat_message:
         st.markdown(format_content(message["content"]), unsafe_allow_html=True)
-        col1, col2, col3 = st.columns([2, 2, 94])
-        display_message_buttons(message, index, col1, col2, col3)
-
-
-def display_message_buttons(
-    message: dict[str, Any], index: int, col1: Any, col2: Any, col3: Any
-) -> None:
-    """Display edit, refresh, and delete buttons for a chat message."""
-    edit_button = f"{index}_edit"
-    refresh_button = f"{index}_refresh"
-    delete_button = f"{index}_delete"
-    content = (
-        message["content"]
-        if isinstance(message["content"], str)
-        else message["content"][-1]["text"]
-    )
-
-    with col1:
-        st.button(label="✎", key=edit_button, type="primary")
-    if message["type"] == "human":
-        with col2:
-            st.button(
-                label="⟳",
-                key=refresh_button,
-                type="primary",
-                on_click=partial(
-                    MessageEditing.refresh_message, st, index, content
-                ),
-            )
-        with col3:
-            st.button(
-                label="X",
-                key=delete_button,
-                type="primary",
-                on_click=partial(MessageEditing.delete_message, st, index),
-            )
-
-    if st.session_state[edit_button]:
-        st.text_area(
-            "Edit your message:",
-            value=content,
-            key=f"edit_box_{index}",
-            on_change=partial(
-                MessageEditing.edit_message, st, index, message["type"]
-            ),
-        )
-
 
 def display_tool_output(
     tool_call_input: dict[str, Any], tool_call_output: dict[str, Any]
@@ -209,14 +174,12 @@ def handle_user_input(side_bar: SideBar) -> None:
             st.session_state.uploader_key += 1
         st.rerun()
 
-
 def display_user_input(parts: Sequence[dict[str, Any]]) -> None:
     """Display the user's input in the chat interface."""
-    human_message = st.chat_message("human")
+    human_message = st.chat_message("human", avatar=USER_ICON_PATH)
     with human_message:
         existing_user_input = format_content(parts)
         st.markdown(existing_user_input, unsafe_allow_html=True)
-
 
 def generate_ai_response(
     remote_agent_engine_id: str | None = None,
@@ -225,9 +188,8 @@ def generate_ai_response(
     authenticate_request: bool = False,
 ) -> None:
     """Generate and display the AI's response to the user's input."""
-    ai_message = st.chat_message("ai")
+    ai_message = st.chat_message("ai", avatar=BOT_ICON_PATH)
     with ai_message:
-        status = st.status("Generating answer🤖")
         stream_handler = StreamHandler(stm=st)
         client = Client(
             remote_agent_engine_id=remote_agent_engine_id,
@@ -236,8 +198,6 @@ def generate_ai_response(
             authenticate_request=authenticate_request,
         )
         get_chain_response(stm=st, client=client, stream_handler=stream_handler)
-        status.update(label="Finished!", state="complete", expanded=False)
-
 
 def update_chat_title() -> None:
     """Update the chat title if it's currently empty."""
@@ -257,7 +217,7 @@ def display_feedback(side_bar: SideBar) -> None:
     """Display a feedback component and log the feedback if provided."""
     if st.session_state.run_id is not None:
         feedback = streamlit_feedback(
-            feedback_type="faces",
+            feedback_type="thumbs",
             optional_text_label="[Optional] Please provide an explanation",
             key=f"feedback-{st.session_state.run_id}",
         )
@@ -401,7 +361,6 @@ html_style = """
 </style>
 """
 
-
 html_string_header = f"""
   <div class="header">
     <img style="width: 500px" src="{get_image_url_from_path("frontend/assets/logo.png")}" alt="logo"/>
@@ -428,8 +387,6 @@ html_string_main_content = f"""
     </div>
   </div>
 """
-
-
 
 def main() -> None:
     """Main function to set up and run the Streamlit app."""
