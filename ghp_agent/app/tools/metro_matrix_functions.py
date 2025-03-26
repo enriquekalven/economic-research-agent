@@ -119,11 +119,19 @@ def format_metro_matrix_data(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         Dataframe to display to user for metro matrix.
     """
+
+    df["total_population"] = df["total_population"].astype(float).astype(int)
+    df["total_population"] = df["total_population"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
+
+    df["population_above_25"] = df["population_above_25"].astype(float).astype(int)
+    df["population_above_25"] = df["population_above_25"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
+
+
     # Rename columns to match template.
     col_rename_mapping = {
         "total_population": "Total Population",
-        "median_age": "Population above 25 age",
-        "population_above_25": "Median Age",
+        "median_age": "Median Age",
+        "population_above_25": "Population above 25 age",
         "percent_foreign_born": "Percent Foreign Born",
         "percent_bachelors": "Percent Earned Bachelor's Degree or Higher (25+)",
         "percent_masters": "Percent Earned Graduate or Professional Degree (25+)", # pylint: disable=line-too-long

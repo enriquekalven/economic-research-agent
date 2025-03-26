@@ -180,4 +180,5 @@ def get_census_stats(city_names: List[Dict[str, Any]]):
         inplace=True,
         axis=1
     )
+
     return census_stats, citations
