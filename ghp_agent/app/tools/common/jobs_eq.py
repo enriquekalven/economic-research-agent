@@ -129,18 +129,21 @@ def get_empl_and_wages_by_industry(
         SELECT
             SUBSTR(code, 1, {max_length}) AS code,
             SUM(empl) AS sum_total_empl_int,
-            SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int
+            AVG(avg_ann_wages_int) AS avg_avg_ann_wages_int
         FROM
             {INDUSTRY_2024Q3} t
         WHERE
             LOWER(metro) LIKE LOWER('%{city_names[0]}%')
             AND
             SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
-        GROUP BY metro, code;"""
+        GROUP BY metro, code LIMIT 8;"""
     sub_sector_data = execute_bq_query_to_df(
         project=PROJECT_ID,
         query=sub_sector_sql
     )
+    # Format columns.
+    sub_sector_data["avg_avg_ann_wages_int"] = sub_sector_data["avg_avg_ann_wages_int"].apply(format_currency)
+    sub_sector_data["sum_total_empl_int"] = sub_sector_data["sum_total_empl_int"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
     # Combine with NAICS data.
     merged_df = merge_dataframes(
         df_list=[naics_dig, sub_sector_data],
@@ -153,18 +156,21 @@ def get_empl_and_wages_by_industry(
             SELECT
                 SUBSTR(code, 1, {max_length}) AS code,
                 SUM(empl) AS sum_total_empl_int,
-                SUM(avg_ann_wages_int)/SUM(empl) AS avg_avg_ann_wages_int
+                AVG(avg_ann_wages_int) AS avg_avg_ann_wages_int
             FROM
                 {INDUSTRY_2024Q3} t
             WHERE
                 LOWER(metro) LIKE LOWER('%{city}%')
                 AND
                 SUBSTR(code, 1, {max_length}) IN {naics_where_clause}
-            GROUP BY metro, code;"""
+            GROUP BY metro, code LIMIT 8;"""
             sub_sector_data = execute_bq_query_to_df(
                 project=PROJECT_ID,
                 query=sub_sector_sql
             )
+            # Format columns.
+            sub_sector_data["avg_avg_ann_wages_int"] = sub_sector_data["avg_avg_ann_wages_int"].apply(format_currency)
+            sub_sector_data["sum_total_empl_int"] = sub_sector_data["sum_total_empl_int"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
             merged_df = merge_dataframes(
                 df_list=[merged_df, sub_sector_data],
                 how="inner",
@@ -184,6 +190,15 @@ def get_empl_and_wages_by_industry(
     rename_dict = dict(zip(original_last_cols, new_names))
     empl_wages_table = empl_wages_table.rename(columns=rename_dict)
     return empl_wages_table
+
+
+def format_currency(value):
+    """Formats a single integer value as a currency string."""
+    try:
+        int_value = int(value)  # Ensure it's treated as an integer
+        return "${:,}".format(int_value)
+    except (ValueError, TypeError): #handles non-numeric data
+        return value #return the original in case of error.
 
 
 def get_unskilled_labor_wages(
@@ -247,7 +262,7 @@ def get_unskilled_labor_wages(
     soc_where_clause = soc_where_clause + ")"
     unskilled_labor_query = f"""SELECT occupation, mean, entry_level,
         experienced FROM {OCCUPATION_WAGES_2024Q3} WHERE
-        {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city_names[0]}%');"""
+        {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city_names[0]}%') LIMIT 8;"""
     # Get Instustry Occupation Data
     merged_df = execute_bq_query_to_df(
         project=PROJECT_ID,
@@ -257,7 +272,7 @@ def get_unskilled_labor_wages(
         for city in city_names[1:]:
             unskilled_labor_query = f"""SELECT occupation, mean, entry_level,
                 experienced FROM {OCCUPATION_WAGES_2024Q3} WHERE
-                {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city}%');"""
+                {soc_where_clause} AND LOWER(metro) LIKE LOWER('%{city}%') LIMIT 8;"""
             unskilled_labor = execute_bq_query_to_df(
                 project=PROJECT_ID,
                 query=unskilled_labor_query
@@ -314,6 +329,7 @@ def get_labor_market_info(
         query=labor_sql_query
     )
     labor_market_info["avg_hourly"] = "$" + labor_market_info["avg_hourly"]
+    labor_market_info["empl"] = labor_market_info["empl"].apply(lambda x: "{:,}".format(x) if pd.notna(x) else x)
     labor_market_info = labor_market_info.rename(columns = {
         "occupation": "Occupational Title",
         "empl": "Total Employees",
