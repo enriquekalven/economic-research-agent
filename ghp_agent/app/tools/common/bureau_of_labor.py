@@ -178,7 +178,9 @@ def get_median_hourly_wage(
 
     median_wage_query = f"""
     SELECT
-        *
+        metro,
+        CONCAT('$',median_hourly_wage) AS median_hourly_wage,
+        source
     FROM `{PROJECT_ID}.{LABOR_STATS_DATASET}.{median_hourly_wage_table}`
     WHERE REGEXP_CONTAINS(
         LOWER({column_name_to_match}),
