@@ -56,7 +56,7 @@ from economic_research_agent.tools.company_relocation_skill import generate_comp
 
 # Standard ADK Configuration
 LOCATION = os.getenv("LOCATION", "us-central1")
-MODEL_NAME = os.getenv("LLM_MODEL", "gemini-2.0-flash-001")
+MODEL_NAME = os.getenv("LLM_MODEL", "gemini-3.1-flash-lite")
 
 # Specialized Skills Registry
 tools = [
