@@ -16,22 +16,32 @@ def deploy_era_to_vertex(project_id: str, location: str = "us-central1", display
     staging_bucket = f"gs://{project_id}-agent-engine-v16"
     vertexai.init(project=project_id, location=location, staging_bucket=staging_bucket)
     
-    # Import the app here to ensure environment is set
-    # Using local import from the root-relative path
-    from economic_research_agent.agent import agent
+    # Calculate absolute path for extra_packages
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    agent_package_path = project_root
     
+    # Add project root to sys.path to ensure economic_research_agent can be imported
+    import sys
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    
+    # Import the cloud-ready reasoning engine instance
+    from economic_research_agent.agent import reasoning_engine
+    
+    print(f"📦 Packaging from: {agent_package_path}")
+
+    # Read requirements from requirements.txt
+    requirements_path = os.path.join(project_root, "requirements.txt")
+    with open(requirements_path, "r") as f:
+        requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
     remote_app = reasoning_engines.ReasoningEngine.create(
-        agent,
-        requirements=[
-            "google-adk>=1.24.0",
-            "google-cloud-aiplatform>=1.136.0",
-            "fredapi>=0.5.2",
-            "requests>=2.31.0",
-            "python-dotenv>=1.0.0",
-        ],
+        reasoning_engine,
+        requirements=requirements,
         display_name=display_name,
-        extra_packages=["economic_research_agent"],
-        # env_vars={"LLM_MODEL": "gemini-3.1-flash-lite"}
+        description="Enterprise-grade Economic Research Agent (ERA) for site-selection and macro analytics.",
+        extra_packages=[agent_package_path],
     )
     
     print(f"✅ Deployment Successful!")

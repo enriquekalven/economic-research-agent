@@ -1,5 +1,5 @@
 #  Copyright 2025 Google LLC. This software is provided as-is, without warranty or representation.
-"""ERA Strategic Consultant Desktop - Streamlit Dashboard."""
+"""ERA Economic Research Agent - Streamlit Dashboard."""
 
 import streamlit as st
 import os
@@ -14,7 +14,7 @@ load_dotenv()
 
 # --- Page Optimization (McKinsey Style) ---
 st.set_page_config(
-    page_title="ERA | Strategic Consultant Desktop",
+    page_title="ERA | Economic Research Agent",
     page_icon="🏙️",
     layout="wide",
 )
@@ -51,11 +51,6 @@ def get_era_runner():
     from economic_research_agent.agent import agent
     runner_instance = InMemoryRunner(app=agent)
     runner_instance.auto_create_session = True
-    # Ensure active session exists
-    try:
-        runner_instance.create_session(user_id="streamlit-user", session_id="default-session")
-    except Exception:
-        pass
     return runner_instance
 
 runner = get_era_runner()
@@ -84,12 +79,12 @@ with st.sidebar:
     analysis_depth = st.select_slider("Analysis Rigor", ["High-Level", "Detailed", "Exhaustive"])
 
 # Main Dashboard
-st.markdown("<h1 class='mc-header'>🏙️ Economic Research Agent | Strategic Consultant Desktop</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='mc-header'>🏙️ Economic Research Agent (ERA)</h1>", unsafe_allow_html=True)
 
 # Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "assistant", "content": "Welcome to the ERA Consultant Desktop. I can assist with 360-degree regional economic modeling and site selection. What region or industry are you evaluating today?"}
+        {"role": "assistant", "content": "Welcome to the Economic Research Agent (ERA). I provide 360-degree regional economic modeling and site-selection benchmarks. What region or industry are you evaluating today?"}
     ]
 
 for message in st.session_state.messages:
@@ -112,28 +107,26 @@ if prompt := st.chat_input("Enter site-selection query (e.g., 'Compare Austin vs
         with st.spinner("Analyzing Regional Data (Planner -> Researcher -> Auditor -> Scribe)..."):
             try:
                 from google.genai import types
-                response_generator = runner.run(
-                    new_message=types.Content(parts=[types.Part(text=context_prompt)]),
-                    user_id="streamlit-user",
-                    session_id="default-session"
-                )
                 
-                # Handling specialized streaming response
-                for event in response_generator:
-                    if event.content and event.content.parts:
+                # High-Fidelity Streaming with Tool-Call awareness
+                msg = types.Content(parts=[types.Part(text=context_prompt)])
+                
+                # We use the raw runner for streaming events to the UI
+                for event in runner.run(new_message=msg, user_id="streamlit-user", session_id="default-session"):
+                    if hasattr(event, 'content') and event.content.parts:
                         for part in event.content.parts:
+                            # Only render text parts; skip function_call/function_response metadata
                             if part.text:
                                 full_response += part.text
                                 message_placeholder.markdown(full_response + "▌")
                 
-                # Check for tables and charts
+                # Final clean render
+                message_placeholder.markdown(full_response)
+                
+                # Proactive Visualizations
                 if "|" in full_response:
                     st.toast("📊 Data detected. Formatting comparative report...")
                 
-                message_placeholder.markdown(full_response)
-                
-                # Proactive Visualization: If we see numeric sequences, we can generate a chart
-                # This is a 'wow' factor implementation
                 if "historical" in full_response.lower() or "unemployment" in full_response.lower():
                     st.info("💡 High-fidelity trend analysis detected. Generating visualization...")
                     dummy_data = {
@@ -147,8 +140,9 @@ if prompt := st.chat_input("Enter site-selection query (e.g., 'Compare Austin vs
             except Exception as e:
                 st.error(f"Execution Error: {str(e)}")
                 full_response = f"I encountered an error during analysis: {str(e)}"
+                message_placeholder.markdown(full_response)
 
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 # Footer
 st.markdown("---")

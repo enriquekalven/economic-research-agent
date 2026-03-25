@@ -31,8 +31,8 @@ mcp: ## Run the agent as an MCP Server
 	@echo "🛰️ Starting ERA MCP Server..."
 	uv run python3 mcp_server.py
 
-streamlit: ## Launch the Strategic Consultant Desktop (Streamlit)
-	@echo "🖥️ Launching ERA Strategic Consultant Desktop..."
+streamlit: ## Launch the Economic Research Agent Dashboard (Streamlit)
+	@echo "🖥️ Launching Economic Research Agent Dashboard..."
 	uv run streamlit run streamlit_app.py
 
 # Note: Serve target removed as server.py was deprecated in 2.0 structure.

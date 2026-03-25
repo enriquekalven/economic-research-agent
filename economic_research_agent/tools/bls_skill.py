@@ -20,25 +20,25 @@ class CityNamesRequest(BaseModel):
 class StateNamesRequest(BaseModel):
     state_names: List[str] = Field(..., min_length=1, description="List of full state names.")
 
-def labor_force_stats_skill(city_names: List[str]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def labor_force_stats_skill(city_names: List[str]) -> Any:
     """
     Fetches BLS data for labor force statistics (unemployment, labor force).
     """
     return find_labor_force_stats(city_names)
 
-def median_hourly_wages_skill(city_names: List[str]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def median_hourly_wages_skill(city_names: List[str]) -> Any:
     """
     Fetches BLS data for median hourly wages across all occupations.
     """
     return find_median_hourly_wages(city_names)
 
-def state_union_employment_skill(state_names: List[str]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def state_union_employment_skill(state_names: List[str]) -> Any:
     """
     Fetches state-level union employment rates.
     """
     return find_state_union_employment(state_names)
 
-def state_tax_rate_skill(state_names: List[str]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
+def state_tax_rate_skill(state_names: List[str]) -> Any:
     """
     Fetches state-level corporate income tax rates.
     """

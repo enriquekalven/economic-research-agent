@@ -7,8 +7,6 @@ import requests
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
-
 class SentimentRequest(BaseModel):
     query: str = Field(..., description="Query to search for news sentiment (e.g. 'Austin labor market' or 'Raleigh economic growth').")
     language: str = Field("en", description="Language for news search.")
@@ -23,12 +21,13 @@ def analyze_market_sentiment(
     Use this to catch 'Soft Signals' (strikes, recent large relocations, political decisions)
     that governemnt data (BLS/Census) might have missed.
     """
-    if not NEWS_API_KEY:
+    api_key = os.getenv("NEWS_API_KEY")
+    if not api_key:
         return "ERROR: NEWS_API_KEY is not set in environment variables."
 
     # NewsAPI endpoint for top headlines or everything. 
     # 'everything' allows for more specific query matching.
-    url = f"https://newsapi.org/v2/everything?q={query}&language={language}&sortBy=relevancy&pageSize=8&apiKey={NEWS_API_KEY}"
+    url = f"https://newsapi.org/v2/everything?q={query}&language={language}&sortBy=relevancy&pageSize=8&apiKey={api_key}"
     
     try:
         response = requests.get(url, timeout=12)

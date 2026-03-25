@@ -5,11 +5,15 @@ Replaces LangChain/LangGraph with native Vertex AI Agent Development Kit.
 """
 
 import os
+import json
 from typing import List, Optional
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.models import Gemini
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Specialized Skill Imports
 from economic_research_agent.tools.bls_skill import (
@@ -32,69 +36,6 @@ from economic_research_agent.tools.hud_skill import (
 from economic_research_agent.tools.tax_foundation_skill import fetch_state_tax_rates
 from economic_research_agent.tools.trade_skill import fetch_regional_trade_data
 from economic_research_agent.tools.regulatory_skill import fetch_regulatory_notices
-from economic_research_agent.tools.political_climate_skill import search_lobbying_influence
-from economic_research_agent.tools.fec_skill import analyze_political_stability
-from economic_research_agent.tools.bls_api_skill import fetch_bls_series_data, analyze_labor_force_quality
-from economic_research_agent.tools.geo_skill import get_region_identifiers
-from economic_research_agent.tools.macro_foundation_skill import get_state_macro_health
-from economic_research_agent.tools.regional_edc_skill import get_regional_edc_data
-from economic_research_agent.tools.visualization_skill import generate_economic_chart
-from economic_research_agent.tools.sentiment_skill import analyze_market_sentiment
-from economic_research_agent.tools.climate_resilience_skill import get_climate_risk_index
-from economic_research_agent.tools.lifestyle_logistics_incentives_skills import (
-    get_logistics_efficiency,
-    get_cultural_amenity_score,
-    get_regional_tax_incentives
-)
-from economic_research_agent.tools.policy_risk_cola_skills import (
-    get_policy_risk_benchmarks,
-    get_purchasing_power_adjustment
-)
-from economic_research_agent.tools.metro_matrix_skill import generate_metro_matrix_report
-from economic_research_agent.tools.hq_relocation_skill import generate_hq_relocation_summary
-from economic_research_agent.tools.company_relocation_skill import generate_company_relocation_report
-
-# Standard ADK Configuration
-LOCATION = os.getenv("LOCATION", "us-central1")
-MODEL_NAME = os.getenv("LLM_MODEL", "gemini-3.1-flash-lite")
-
-# Specialized Skills Registry
-tools = [
-    labor_force_stats_skill,
-    median_hourly_wages_skill,
-    state_tax_rate_skill,
-    state_union_employment_skill,
-    fetch_regional_macro_stats,
-    fetch_state_electricity_rates,
-    get_real_estate_roi,
-    get_talent_pipeline_roi,
-    fetch_census_education_stats,
-    fetch_bea_regional_data,
-    fetch_hud_fmr_data,
-    fetch_hud_income_limits,
-    analyze_housing_affordability,
-    fetch_state_tax_rates,
-    fetch_regional_trade_data,
-    fetch_regulatory_notices,
-    search_lobbying_influence,
-    get_region_identifiers,
-    fetch_bls_series_data,
-    analyze_labor_force_quality,
-    analyze_political_stability,
-    get_state_macro_health,
-    get_regional_edc_data,
-    generate_economic_chart,
-    analyze_market_sentiment,
-    get_climate_risk_index,
-    get_logistics_efficiency,
-    get_cultural_amenity_score,
-    get_regional_tax_incentives,
-    get_policy_risk_benchmarks,
-    get_purchasing_power_adjustment,
-    generate_metro_matrix_report,
-    generate_hq_relocation_summary,
-    generate_company_relocation_report,
-]
 
 # 🏛️ ERA ADK 2.0 Instruction (Combining Planner/Researcher/Auditor/Scribe)
 ERA_INSTRUCTIONS = """
@@ -102,60 +43,107 @@ You are a WORLD-CLASS Economic Research Agent (ERA), a direct competitor to high
 Your mission is to provide 360-degree regional economic modeling for corporate decision-makers.
 
 ### Consultative Workflow:
-1. **Plan**: Identify the core Cost-Drivers (Labor, Real Estate, Utilities, Taxes) for the user's request.
-2. **Research**: Use your specialized tools (FRED, BLS, BEA, Census ACS, HUD FMR/AMI, EIA, Trade Data, Regulatory Notcies, FEC Political Risk, Tax Foundation, CoStar, DOT) to gather grounded benchmarks.
-3. **Audit**: Sanity-check the data. Ensure real-time sentiment from NewsAPI aligns with the hard macro stats.
+1. **Planner**: Identify which data source is needed (FRED for macro stats, BLS for wages, BEA for GDP, HUD for housing).
+2. **Researcher**: Execute multiple tool-calls to gather the latest trusted parameters.
+3. **Auditor**: Validate metrics against potential hallucinations.
 4. **Scribe**: Generate a high-fidelity executive summary using the [A2UI] protocol where relevant.
 
 ### 🏛️ Premium Persona & Formatting:
-- **Narrative Synthesis**: Weave mathematical tool outputs into a smooth, professional narrative paragraph. DO NOT dump raw JSON or point-form bullet lists unless specifically comparisons are requested.
-- **Side-by-Side Comparisons**: When comparing two cities, ALWAYS use standard Markdown tables.
-- **Visual-Visualizations**: If you have array data for multiple years (like unemployment over 10 years), proactively invoke the `generate_economic_chart` and place `[A2UI: RENDER_CHART]` or `[A2UI: SHOW_METRICS]` inline. Do not display blank tags.
-- **Strategic Affordability**: When discussing lifestyle or cost of living, use the `analyze_housing_affordability` tool to compare rent against Area Median Income (AMI).
-- **Supply-Chain Context**: Use `fetch_regional_trade_data` to identify if a state is a hub for the user's specific industry (e.g. Semiconductors).
-- **Political & Regulatory Risk**: Correlate lobbying data (`search_lobbying_influence`) with campaign finance (`analyze_political_stability`) to benchmark policy shifts.
-- **Labor Quality**: Use `analyze_labor_force_quality` for live unemployment trends at the county level (FIPS lookup required).
-- **Zero Hallucination Tolerance**: If a tool returns No Data or an empty result, honestly state "N/A" rather than faking a metric or assuming single national averages.
+- **Multi-Point Consulting Protocol**: When the user provides a numbered list of questions or a multi-part mission, treat each item as a distinct section of a "Consolidated Executive Report". Maintain consistent grounding rigor (invoking tools for every section) rather than summarizing toward the end.
+- **Narrative Synthesis**: Weave mathematical tool outputs into professional narrative sections. If a multi-part request is detected, use Bold Headers (e.g. '### 1. General Overview') for each section to maintain structural clarity.
+- **Side-by-Side Comparisons**: When comparing multiple states, ALWAYS prioritize standard Markdown tables for data density.
+- **Visual-Visualizations**: If you detect numeric trends (unemployment over years, trade flux), proactively invoke `generate_economic_chart` and place `[A2UI: RENDER_CHART]` inline. 
+- **Zero Hallucination Tolerance**: If a tool returns No Data for a specific state (e.g. lack of electricity rates for Oregon), explicitly state "Data unavailable for [Region]" rather than omitting the region from the analysis.
 """
 
-# 🏛️ App Wrapper for Reasoning Engine Compatibility
 class ERAAgent:
-    """Class-based wrapper for Vertex AI Reasoning Engine."""
-    def __init__(self, model_name: str = MODEL_NAME):
-        self.model_name = model_name
-        # Capture context and keys for pickling in cloud environment
-        self.env_vars = {
-            "BEA_API_KEY": os.getenv("BEA_API_KEY"),
-            "FRED_API_KEY": os.getenv("FRED_API_KEY"),
-            "CENSUS_API_KEY": os.getenv("CENSUS_API_KEY"),
-            "EIA_API_KEY": os.getenv("EIA_API_KEY"),
-            "BLS_API_KEY": os.getenv("BLS_API_KEY"),
-            "HUD_API_KEY": os.getenv("HUD_API_KEY"),
-            "FEC_API_KEY": os.getenv("FEC_API_KEY"),
-            "NEWS_API_KEY": os.getenv("NEWS_API_KEY"),
-        }
-        # The agent definition is moved inside or referenced
-        self.era_agent = Agent(
-            name="economic_research_agent",
-            model=Gemini(
-                model=self.model_name,
-                retry_options=types.HttpRetryOptions(attempts=3),
-            ),
+    agent_framework = "google-adk"
+
+    def __init__(self):
+        """Standard container for the Reasoning Engine. State-free to ensure cloud pickling stability."""
+        pass
+
+    def get_app(self) -> App:
+        """Lazily instantiates the ADK App and Agent only when needed."""
+        tools = [
+            labor_force_stats_skill,
+            median_hourly_wages_skill,
+            state_tax_rate_skill,
+            state_union_employment_skill,
+            fetch_regional_macro_stats,
+            fetch_state_electricity_rates,
+            get_real_estate_roi,
+            get_talent_pipeline_roi,
+            fetch_census_education_stats,
+            fetch_bea_regional_data,
+            fetch_hud_fmr_data,
+            fetch_hud_income_limits,
+            analyze_housing_affordability,
+            fetch_state_tax_rates,
+            fetch_regional_trade_data,
+            fetch_regulatory_notices,
+        ]
+        
+        era_agent = Agent(
+            name="ERA_Consultant",
+            model=Gemini(model_name="gemini-2.5-flash"),
             instruction=ERA_INSTRUCTIONS,
             tools=tools,
         )
-        self.app = App(root_agent=self.era_agent, name="ERA_Consultant_Suite")
+        return App(root_agent=era_agent, name="Economic_Research_Agent")
 
-    def query(self, input: str):
+    def query(self, input: str) -> str:
         """Standard Reasoning Engine entry point."""
-        # Provision keys in runtime environment
-        for k, v in self.env_vars.items():
-            if v: os.environ[k] = v
-        return self.app.run(input)
+        # Cloud Secrets fallback using Secret Manager
+        def get_cloud_secret(key_name):
+            val = os.getenv(key_name)
+            if val:
+                return val
+            try:
+                from economic_research_agent.shared_libraries.helper import access_secret_version
+                # We can hardcode the workshop project-maui for consistency
+                return access_secret_version(project_id="project-maui", secret_id=key_name)
+            except Exception:
+                return None
 
-# Export the class instance as 'agent' for the deployment script
+        # Provision keys in runtime environment
+        env_vars = {
+            "BEA_API_KEY": get_cloud_secret("BEA_API_KEY"),
+            "FRED_API_KEY": get_cloud_secret("FRED_API_KEY"),
+            "CENSUS_API_KEY": get_cloud_secret("CENSUS_API_KEY"),
+            "EIA_API_KEY": get_cloud_secret("EIA_API_KEY"),
+            "BLS_API_KEY": get_cloud_secret("BLS_API_KEY"),
+            "HUD_API_KEY": get_cloud_secret("HUD_API_KEY"),
+            "FEC_API_KEY": get_cloud_secret("FEC_API_KEY"),
+            "NEWS_API_KEY": get_cloud_secret("NEWS_API_KEY"),
+        }
+        for k, v in env_vars.items():
+            if v: os.environ[k] = v
+        
+        # Instantiate App & Runner at runtime rather than deploy-time
+        app = self.get_app()
+        
+        from google.adk.runners import InMemoryRunner
+        runner = InMemoryRunner(app=app)
+        runner.auto_create_session = True
+        
+        responses = runner.run(new_message=input)
+        full_text = ""
+        for res in responses:
+            if hasattr(res, 'content') and res.content.parts:
+                for part in res.content.parts:
+                    if part.text:
+                        full_text += part.text
+        return full_text
+
+# Export the entry points for different environments
 export_agent = ERAAgent()
-# Explicitly use the instance for everything
-agent = export_agent
-# Also export root_agent for local CLI/Streamlit usage
-root_agent = export_agent.era_agent
+
+# Use 'agent' for local runners (Streamlit uses App instance directly)
+agent = export_agent.get_app()
+
+# Use 'reasoning_engine' for cloud deployment (Vertex AI expects class with .query() method)
+reasoning_engine = export_agent
+
+# Also export root_agent for local CLI usage
+root_agent = export_agent.get_app().root_agent

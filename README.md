@@ -9,16 +9,57 @@ An advanced agentic intelligence designed for high-fidelity regional economic an
 
 ---
 
-## 🏛️ A. Executive Architecture: ADK 2.0
-The Economic Research Agent has been modernized to **Level 3 Structural Maturity**. Unlike legacy RAG agents, ERA uses a **Live Consultative Persona** that synthesizes raw data into McKinsey-style executive reports.
-
-### 💎 Key Features:
-- **Live-API Strategy**: 100% decoupled from legacy static database dependencies. All data is fetched live from FRED, EIA, BLS, and NewsAPI.
-- **Narrative Synthesis**: The agent avoids bullet-point dumps, weaving metrics into professional consulting narratives.
-- **A2UI Protocol**: Native support for `[A2UI: RENDER_CHART]` and `[A2UI: SHOW_METRICS]` tags for rich Streamlit rendering.
-- **Golden Suite Validation**: Hardened against a 21-question integration matrix covering all economic sectors.
+## 🏛️ Executive Summary
+The **Economic Research Agent (ERA)** is a production-grade site-selection consultant built on **Vertex AI ADK 2.0** and **Gemini 3.1**. Designed for corporate research, ERA automates multi-city regional cost-modeling by orchestrating 30+ live public APIs (FRED, BLS, CENSUS, HUD, EIA) into McKinsey-style strategic briefs.
 
 ![ERA Architecture](agent_pattern.png)
+
+```mermaid
+graph TD
+    User([User Query]) --> Agent[Economic Research Agent (Planner)]
+    
+    subgraph "Dynamic Execution Loop (ReAct)"
+        Agent --> ToolRouter{Tool Router}
+        ToolRouter --> Macro["<b>Macro Hub</b><br/>FRED, BEA, Census"]
+        ToolRouter --> Labor["<b>Labor Matrix</b><br/>BLS Stats, Wage Data"]
+        ToolRouter --> Policy["<b>Policy & Risk</b><br/>FEC, Federal Register"]
+        ToolRouter --> Infra["<b>Infrastructure</b><br/>EIA Energy, Real Estate"]
+    end
+    
+    Macro --> LiveAPIs([External Public APIs])
+    Labor --> LiveAPIs
+    Policy --> LiveAPIs
+    Infra --> LiveAPIs
+    
+    LiveAPIs -- Grounded Data --> Agent
+    Agent --> Narrative[Narrative Synthesis & Scribe]
+    Narrative -- [A2UI] Response --> User
+    
+    style Agent fill:#f9f,stroke:#333,stroke-width:2px
+    style LiveAPIs fill:#bbf,stroke:#333,stroke-width:2px
+```
+
+### 📊 Agent Details
+| Feature | Specifics |
+| :--- | :--- |
+| **Interaction Type** | Conversational / Strategic Consultant |
+| **Complexity** | Advanced (Multi-Source Synthesis) |
+| **Agent Type** | Single Agent (ADK Class-Based) |
+| **Vertical** | Economic Development / Real Estate / Finance |
+| **Grounding** | 100% Live-API (FRED, BLS, HUD, Census, BEA) |
+
+---
+
+## 💬 Example Interaction (Strategic Consulting)
+**User**: "Compare Austin and Raleigh for a new data center HQ."
+
+**ERA**: "I am analyzing technical and fiscal ROI for NAICS 518210 (Data Processing). 
+1. **Utility Benchmarking**: Texas (ERCOT) industrial rates average 8.2c/kWh, while North Carolina (Duke Energy) is 7.5c/kWh.
+2. **Talent Pipeline**: UT Austin graduated 1,200 CS majors in 2023 vs. 850 from NC State.
+3. **Fiscal Climate**: NC has a scheduled corporate tax phasedown to 0% by 2030, offering a better longitudinal OPEX profile.
+*Recommendation: Raleigh for long-term tax stability; Austin for immediate talent density.*"
+
+---
 
 ---
 
@@ -107,7 +148,8 @@ ERA offers multiple interaction protocols:
 # 🧠 Option 1: Interactive CLI Session (Standard)
 make run
 
-# 🖥️ Option 2: Strategic Consultant Desktop (Streamlit)
+# Economic Research Agent (ERA)
+ (Streamlit)
 make streamlit
 
 # 🛰️ Option 3: Multi-Protocol MCP Server (For Claude/Cursor)
@@ -149,30 +191,30 @@ uv run pytest tests/integration/test_full_golden_suite.py
 
 ---
 
-## 🚀 D. Production Deployment
+# 🚀 D. Production Deployment
 The ERA is built for the **Vertex AI Reasoning Engine** (ADK 2.0).
 
 ```bash
 # 🌍 Step 1: Deploy to Google Cloud (Reasoning Engine)
 make deploy
+```
 
-## 🔒 F. Cloud-Native Security & Privacy
+## 🛠️ E. Customization & Extension
+The ERA is designed for modular growth:
+- **Modifying the Persona**: Edit `economic_research_agent/prompt.py` to change the consultative tone.
+- **Adding New Skills**: Add your skill in `economic_research_agent/tools/`, then register it in `economic_research_agent/agent.py`.
+- **Altering Data Flows**: Use the `shared_libraries/helper.py` to add new HTTP/JSON normalization patterns for regional data.
+
+## 📊 F. Evaluation Methodology
+How do we know ERA is accurate?
+- **Golden Suite**: We use a 21-question integration suite (`tests/integration/`) targeting specific NAICS scenarios.
+- **Grounding Fidelity Metric**: The `eval/run_eval.py` script uses **LLM-as-a-Judge** (Gemini 3.1 Pro) to verify if the output contains actual numerical data from the APIs.
+- **Regression Testing**: `pytest` handles unit-level verification of API response parsing.
+
+## 🔒 G. Cloud-Native Security & Privacy
 The ERA is engineered for **Enterprise Privacy** within the Google Cloud perimeter:
-- **Zero Data Retention**: No local databases or static tables are used. Data is processed in-memory and delivered to the consultant.
-- **Key-Safe Architecture**: All secrets are managed via `.env` (local) or Secret Manager (Vertex AI).
-- **Audit Logging**: Native integration with Cloud Logging for compliance tracking in site-selection workflows.
-
----
-
-## 🗺️ G. Roadmap
-- [x] **Tax Foundation Scraper**: Web-based scraping for real-time state corporate tax brackets (No API Key Required).
-- [x] **Census ACS Skill**: Hyper-localized talent pipeline analysis via live Census API.
-- [ ] **Python Code Interpreter**: Dynamic mathematical correlation tools for trend analysis.
-
----
-
-*Built for the Atomic Agents Initiative.*
- onboarding.
+- **Zero Data Retention**: No local databases or static tables are used. Data is processed in-memory.
+- **Key-Safe Architecture**: Secrets are managed via `.env` or Google Secret Manager.
 
 ---
 

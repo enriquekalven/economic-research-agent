@@ -5,7 +5,7 @@
 
 import os
 import json
-from typing import List, Tuple
+from typing import List, Tuple, Any
 import pandas as pd
 from fredapi import Fred
 
@@ -14,7 +14,7 @@ from .tax_foundation_skill import fetch_state_tax_rates
 
 def find_labor_force_stats(
     city_names: List[str],
-) -> Tuple[pd.DataFrame, dict]:
+) -> Any:
     """Use this tool whenever a user is looking for information on
     the labor force for a city or cities. This might include
     unemployment or labor force.
@@ -47,7 +47,7 @@ def find_labor_force_stats(
 
 def find_median_hourly_wages(
     city_names: List[str],
-) -> Tuple[pd.DataFrame, dict]:
+) -> Any:
     """Use this tool whenever a user is looking for hourly median
     wages for a city or cities.
 
@@ -86,7 +86,7 @@ def find_median_hourly_wages(
 
 def find_state_union_employment(
     state_names: List[str],
-) -> Tuple[pd.DataFrame, dict]:
+) -> Any:
     """Use this tool whenever a user is looking for union
     employment rates for a state.
 
@@ -124,7 +124,7 @@ def find_state_union_employment(
 
 def find_state_tax_rate(
     state_names: List[str],
-) -> Tuple[pd.DataFrame, dict]:
+) -> Any:
     """Use this tool whenever a user is looking for tax
     rates for a state.
 
