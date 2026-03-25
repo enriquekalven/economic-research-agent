@@ -136,7 +136,7 @@ The ERA is built for the **Vertex AI Reasoning Engine** (ADK 2.0).
 make deploy
 
 # 🛰️ Step 2: Register with Gemini Enterprise
-make register
+make register-gemini-enterprise  # Interactive prompts guide you
 ```
 
 ---
