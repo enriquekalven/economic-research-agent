@@ -73,13 +73,32 @@ The ERA uses a modular grounding strategy. Set these in your `.env` file (see `.
 ERA uses `uv` for lightning-fast dependency management.
 
 ```bash
-# 🍼 Option 1: Create a NEW agent from the Starter Pack (with Deployment)
-uvx agent-starter-pack create my-agent -a adk@economic-research-agent -d agent_engine
-
-# 📦 Option 2: Install dependencies for THIS existing agent
-pip install uv
-uv sync
+# Create and synchronize the virtual environment
+uv sync --dev
 ```
+
+### Alternative: Using Agent Starter Pack
+
+You can also use the [Agent Starter Pack](https://goo.gle/agent-starter-pack) to create a production-ready version of this agent with additional deployment options:
+
+```bash
+# Install the starter pack and create your project
+pip install --upgrade agent-starter-pack
+agent-starter-pack create my-agent -a adk@economic-research-agent
+```
+
+<details>
+<summary>⚡️ Alternative: Using uv</summary>
+
+If you have [`uv`](https://github.com/astral-sh/uv) installed, you can create and setup your project with a single command:
+```bash
+uvx agent-starter-pack create my-agent -a adk@economic-research-agent
+```
+This command handles creating the project without needing to pre-install the package into a virtual environment.
+
+</details>
+
+The starter pack will prompt you to select deployment options and provides additional production-ready features including automated CI/CD deployment scripts.
 
 ### Running the Agent
 ERA offers multiple interaction protocols:

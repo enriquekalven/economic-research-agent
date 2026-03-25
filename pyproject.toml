@@ -47,6 +47,7 @@ dev = [
     "pytest-asyncio>=0.23.8",
     "nest-asyncio>=1.6.0",
     "pytest-cov>=4.1.0",
+    "agent-starter-pack>=0.14.1",
 ]
 
 [project.optional-dependencies]
@@ -126,8 +127,19 @@ ignore-words-list = "rouge"
 skip = "./locust_env/*,uv.lock,.venv,**/*.ipynb"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.8.14,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+
+# This configuration file is used by goo.gle/agent-starter-pack to power remote templating.
+# It defines the template's properties and settings.
+[tool.agent-starter-pack]
+example_question = "Texas vs Ohio for a Data Center"
+
+[tool.agent-starter-pack.settings]
+agent_directory = "economic_research_agent"
 
 
 [tool.pytest.ini_options]
