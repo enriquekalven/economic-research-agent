@@ -36,7 +36,7 @@ def generate_metro_matrix_report(city_names: List[str]) -> str:
     Use this tool to generate a comprehensive 'Metro Matrix Report' (Scenario 2.2.1.1).
     """
     # 1. Gather Macro Health (BEA/Census)
-    # Correct state derivation is critical for Zero-BQ grounding accuracy.
+    # Correct state derivation is critical for Live-API grounding accuracy.
     states = list(set([get_state_from_city(city) for city in city_names]))
     macro_json = get_state_macro_health(states)
     macro_data = json.loads(macro_json) if not macro_json.startswith("ERROR") else []

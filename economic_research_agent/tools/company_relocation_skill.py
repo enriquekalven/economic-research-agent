@@ -16,10 +16,10 @@ class CompanyRelocationRequest(BaseModel):
 def generate_company_relocation_report(city_names: List[str], industry: Optional[str] = None) -> str:
     """
     Use this tool to generate an 'Industry Employment & Wage Report' (Scenario 2.2.1.3).
-    It fetches live industry-level and unskilled labor wages using the Live-API strategy (Zero-BQ).
+    It fetches live industry-level and unskilled labor wages using the Live-API strategy.
     """
     # 1. Fetch Industry Wages
-    # In Zero-BQ mode, we use Live FRED search (JobsEQ alternative)
+    # In Live-API mode, we use Live FRED search (JobsEQ alternative)
     wages_data = median_hourly_wages_skill(city_names) # Already pivoted to Live FRED
     
     # 2. AI Synthesis: Consolidate
