@@ -123,6 +123,17 @@ class ERAAgent:
     """Class-based wrapper for Vertex AI Reasoning Engine."""
     def __init__(self, model_name: str = MODEL_NAME):
         self.model_name = model_name
+        # Capture context and keys for pickling in cloud environment
+        self.env_vars = {
+            "BEA_API_KEY": os.getenv("BEA_API_KEY"),
+            "FRED_API_KEY": os.getenv("FRED_API_KEY"),
+            "CENSUS_API_KEY": os.getenv("CENSUS_API_KEY"),
+            "EIA_API_KEY": os.getenv("EIA_API_KEY"),
+            "BLS_API_KEY": os.getenv("BLS_API_KEY"),
+            "HUD_API_KEY": os.getenv("HUD_API_KEY"),
+            "FEC_API_KEY": os.getenv("FEC_API_KEY"),
+            "NEWS_API_KEY": os.getenv("NEWS_API_KEY"),
+        }
         # The agent definition is moved inside or referenced
         self.era_agent = Agent(
             name="economic_research_agent",
@@ -137,6 +148,9 @@ class ERAAgent:
 
     def query(self, input: str):
         """Standard Reasoning Engine entry point."""
+        # Provision keys in runtime environment
+        for k, v in self.env_vars.items():
+            if v: os.environ[k] = v
         return self.app.run(input)
 
 # Export the class instance as 'agent' for the deployment script
