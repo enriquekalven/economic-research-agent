@@ -18,6 +18,8 @@ The Economic Research Agent has been modernized to **Level 3 Structural Maturity
 - **A2UI Protocol**: Native support for `[A2UI: RENDER_CHART]` and `[A2UI: SHOW_METRICS]` tags for rich Streamlit rendering.
 - **Golden Suite Validation**: Hardened against a 21-question integration matrix covering all economic sectors.
 
+![ERA Architecture](agent_pattern.png)
+
 ---
 
 ## 💎 Consultant's Playbook: The "WOW" Matrix
@@ -135,13 +137,15 @@ The ERA is built for the **Vertex AI Reasoning Engine** (ADK 2.0).
 # 🌍 Step 1: Deploy to Google Cloud (Reasoning Engine)
 make deploy
 
-# 🛰️ Step 2: Register with Gemini Enterprise
-make register-gemini-enterprise  # Interactive prompts guide you
-```
+## 🔒 F. Zero-BQ Security & Privacy
+The ERA is engineered for **Enterprise Privacy** within the Google Cloud perimeter:
+- **Zero Data Retention**: No local databases or BigQuery tables are used. Data is processed in-memory and delivered to the consultant.
+- **Key-Safe Architecture**: All secrets are managed via `.env` (local) or Secret Manager (Vertex AI).
+- **Audit Logging**: Native integration with Cloud Logging for compliance tracking in site-selection workflows.
 
 ---
 
-## 🗺️ E. Roadmap
+## 🗺️ G. Roadmap
 - [x] **Tax Foundation Scraper**: Web-based scraping for real-time state corporate tax brackets (No API Key Required).
 - [x] **Census ACS Skill**: Hyper-localized talent pipeline analysis via live Census API.
 - [ ] **Python Code Interpreter**: Dynamic mathematical correlation tools for trend analysis.

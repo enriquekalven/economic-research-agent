@@ -12,7 +12,9 @@ def deploy_era_to_vertex(project_id: str, location: str = "us-central1", display
     Requires google-adk and google-cloud-aiplatform.
     """
     print(f"🚀 Initializing Deployment for {display_name} in {location}...")
-    vertexai.init(project=project_id, location=location)
+    # Use the discovered staging bucket for Reason Engine serialized assets
+    staging_bucket = f"gs://{project_id}-agent-engine-v16"
+    vertexai.init(project=project_id, location=location, staging_bucket=staging_bucket)
     
     # Import the app here to ensure environment is set
     from economic_research_agent.agent import agent

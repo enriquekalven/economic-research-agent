@@ -118,17 +118,30 @@ Your mission is to provide 360-degree regional economic modeling for corporate d
 - **Zero Hallucination Tolerance**: If a tool returns No Data or an empty result, honestly state "N/A" rather than faking a metric or assuming single national averages.
 """
 
-# 🤖 Agent Definition
-era_agent = Agent(
-    name="economic_research_agent",
-    model=Gemini(
-        model=MODEL_NAME,
-        retry_options=types.HttpRetryOptions(attempts=3),
-    ),
-    instruction=ERA_INSTRUCTIONS,
-    tools=tools,
-)
+# 🏛️ App Wrapper for Reasoning Engine Compatibility
+class ERAAgent:
+    """Class-based wrapper for Vertex AI Reasoning Engine."""
+    def __init__(self, model_name: str = MODEL_NAME):
+        self.model_name = model_name
+        # The agent definition is moved inside or referenced
+        self.era_agent = Agent(
+            name="economic_research_agent",
+            model=Gemini(
+                model=self.model_name,
+                retry_options=types.HttpRetryOptions(attempts=3),
+            ),
+            instruction=ERA_INSTRUCTIONS,
+            tools=tools,
+        )
+        self.app = App(root_agent=self.era_agent, name="ERA_Consultant_Suite")
 
-# 📱 App Definition
-agent = App(root_agent=era_agent, name="ERA_Consultant_Suite")
-root_agent = era_agent
+    def query(self, input: str):
+        """Standard Reasoning Engine entry point."""
+        return self.app.run(input)
+
+# Export the class instance as 'agent' for the deployment script
+export_agent = ERAAgent()
+# Explicitly use the instance for everything
+agent = export_agent
+# Also export root_agent for local CLI/Streamlit usage
+root_agent = export_agent.era_agent
