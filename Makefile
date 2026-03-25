@@ -1,0 +1,57 @@
+#  Copyright 2025 Google LLC. This software is provided as-is, without warranty or representation.
+# --- Economic Research Agent (ERA) Makefile ---
+
+PROJECT_ID ?= $(shell gcloud config get-value project)
+LOCATION ?= us-central1
+VENV_PATH = .venv
+MODERN_REPO = economic_research_agent
+
+.PHONY: venv install test deploy clean help apply-fixes
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+venv: ## Create a virtual environment using uv
+	@echo "🏗️ Creating virtual environment..."
+	uv venv $(VENV_PATH)
+
+install: venv ## Install dependencies using uv
+	@echo "📦 Installing ERA dependencies..."
+	uv sync
+
+test: ## Run unit tests with coverage
+	@echo "🧪 Running ERA test suite..."
+	uv run pytest --cov=$(MODERN_REPO) tests/unit/
+
+run: ## Run the agent locally in interactive mode
+	@echo "🧠 Starting Interactive ERA Consultant Session..."
+	uv run --index https://pypi.org/simple python3 run_local.py
+
+mcp: ## Run the agent as an MCP Server
+	@echo "🛰️ Starting ERA MCP Server..."
+	uv run python3 mcp_server.py
+
+streamlit: ## Launch the Strategic Consultant Desktop (Streamlit)
+	@echo "🖥️ Launching ERA Strategic Consultant Desktop..."
+	uv run streamlit run streamlit_app.py
+
+serve: ## Launch the FastAPI production-ready server
+	@echo "🚀 Launching ERA REST API (Uvicorn)..."
+	uv run uvicorn server:app --reload --host 0.0.0.0 --port 8000
+
+test-integration: ## Run integration tests (Requires API keys)
+	@echo "🛰️ Running ERA integration tests..."
+	uv run pytest tests/integration/
+
+deploy: ## Deploy the agent to Vertex AI Reasoning Engine
+	@echo "🚀 Deploying ERA to Vertex AI (Reasoning Engine)..."
+	PYTHONPATH=. uv run python3 $(MODERN_REPO)/app_utils/deploy.py
+
+apply-fixes: ## Run ruff and auto-fix linting issues
+	@echo "🩹 Applying auto-fixes and formatting..."
+	uv run ruff check --fix .
+	uv run ruff format .
+
+clean: ## Clean up build artifacts and cache
+	rm -rf $(VENV_PATH) .pytest_cache .coverage
+	find . -type d -name "__pycache__" -exec rm -rf {} +
