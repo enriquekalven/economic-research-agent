@@ -72,7 +72,7 @@ ERA uses `uv` for lightning-fast dependency management.
 
 ```bash
 # 🍼 Option 1: Create a NEW agent from the Starter Pack
-uvx create-agent@latest ./
+uvx agent-starter-pack create my-agent -a adk@gemini-fullstack
 
 # 📦 Option 2: Install dependencies for THIS existing agent
 pip install uv
