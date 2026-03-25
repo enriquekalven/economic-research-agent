@@ -71,8 +71,8 @@ The ERA uses a modular grounding strategy. Set these in your `.env` file (see `.
 ERA uses `uv` for lightning-fast dependency management.
 
 ```bash
-# 🍼 Option 1: Create a NEW agent from the Starter Pack
-uvx agent-starter-pack create my-agent -a adk@gemini-fullstack
+# 🍼 Option 1: Create a NEW agent from the Starter Pack (with Deployment)
+uvx agent-starter-pack create my-agent -a adk@gemini-fullstack -d agent_engine
 
 # 📦 Option 2: Install dependencies for THIS existing agent
 pip install uv
