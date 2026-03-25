@@ -16,14 +16,14 @@ The **Economic Research Agent (ERA)** is a production-grade site-selection consu
 
 ```mermaid
 graph TD
-    User([User Query]) --> Agent[Economic Research Agent (Planner)]
+    User([User Query]) --> Agent["Economic Research Agent (Planner)"]
     
     subgraph "Dynamic Execution Loop (ReAct)"
-        Agent --> ToolRouter{Tool Router}
-        ToolRouter --> Macro["<b>Macro Hub</b><br/>FRED, BEA, Census"]
-        ToolRouter --> Labor["<b>Labor Matrix</b><br/>BLS Stats, Wage Data"]
-        ToolRouter --> Policy["<b>Policy & Risk</b><br/>FEC, Federal Register"]
-        ToolRouter --> Infra["<b>Infrastructure</b><br/>EIA Energy, Real Estate"]
+        Agent --> ToolRouter{"Tool Router"}
+        ToolRouter --> Macro["Macro Hub (FRED, BEA, Census)"]
+        ToolRouter --> Labor["Labor Matrix (BLS Stats, Wage Data)"]
+        ToolRouter --> Policy["Policy & Risk (FEC, Federal Register)"]
+        ToolRouter --> Infra["Infrastructure (EIA Energy, Real Estate)"]
     end
     
     Macro --> LiveAPIs([External Public APIs])
@@ -31,9 +31,9 @@ graph TD
     Policy --> LiveAPIs
     Infra --> LiveAPIs
     
-    LiveAPIs -- Grounded Data --> Agent
-    Agent --> Narrative[Narrative Synthesis & Scribe]
-    Narrative -- [A2UI] Response --> User
+    LiveAPIs -->|"Grounded Data"| Agent
+    Agent --> Narrative["Narrative Synthesis & Scribe"]
+    Narrative -->|"[A2UI] Response"| User
     
     style Agent fill:#f9f,stroke:#333,stroke-width:2px
     style LiveAPIs fill:#bbf,stroke:#333,stroke-width:2px
@@ -133,7 +133,7 @@ agent-starter-pack create my-agent -a adk@economic-research-agent
 
 If you have [`uv`](https://github.com/astral-sh/uv) installed, you can create and setup your project with a single command:
 ```bash
-uvx agent-starter-pack create my-agent -a adk@economic-research-agent
+uvx agent-starter-pack create economy-research-agent -a adk@economic-research-agent-d agent_engine
 ```
 This command handles creating the project without needing to pre-install the package into a virtual environment.
 
