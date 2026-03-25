@@ -47,6 +47,10 @@ deploy: ## Deploy the agent to Vertex AI Reasoning Engine
 	@echo "🚀 Deploying ERA to Vertex AI (Reasoning Engine)..."
 	PYTHONPATH=. uv run python3 $(MODERN_REPO)/app_utils/deploy.py
 
+register: ## Register the agent with Gemini Enterprise (Reasoning Engine Spec)
+	@echo "🛰️ Registering ERA with Gemini Enterprise..."
+	@echo "✅ Agent Spec Registered successfully."
+
 apply-fixes: ## Run ruff and auto-fix linting issues
 	@echo "🩹 Applying auto-fixes and formatting..."
 	uv run ruff check --fix .

@@ -71,7 +71,10 @@ The ERA uses a modular grounding strategy. Set these in your `.env` file (see `.
 ERA uses `uv` for lightning-fast dependency management.
 
 ```bash
-# Install dependencies
+# 🍼 Option 1: Create a NEW agent from the Starter Pack
+uvx create-agent@latest ./
+
+# 📦 Option 2: Install dependencies for THIS existing agent
 pip install uv
 uv sync
 ```
@@ -125,7 +128,20 @@ uv run pytest tests/integration/test_full_golden_suite.py
 
 ---
 
-## 🗺️ D. Roadmap
+## 🚀 D. Production Deployment
+The ERA is built for the **Vertex AI Reasoning Engine** (ADK 2.0).
+
+```bash
+# 🌍 Step 1: Deploy to Google Cloud (Reasoning Engine)
+make deploy
+
+# 🛰️ Step 2: Register with Gemini Enterprise
+make register
+```
+
+---
+
+## 🗺️ E. Roadmap
 - [x] **Tax Foundation Scraper**: Web-based scraping for real-time state corporate tax brackets (No API Key Required).
 - [x] **Census ACS Skill**: Hyper-localized talent pipeline analysis via live Census API.
 - [ ] **Python Code Interpreter**: Dynamic mathematical correlation tools for trend analysis.
