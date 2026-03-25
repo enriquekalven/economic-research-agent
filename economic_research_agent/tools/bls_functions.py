@@ -136,7 +136,7 @@ def find_state_tax_rate(
         state_tax_rate_df: A Pandas Dataframe containing the hourly
             state union employment rates.
     """
-    # Directly fetch from Tax Foundation Scraper (Zero-BQ Strategy)
+    # Directly fetch from Tax Foundation Scraper (Live-API Strategy)
     tax_json = fetch_state_tax_rates(state_names)
     data = json.loads(tax_json)
     

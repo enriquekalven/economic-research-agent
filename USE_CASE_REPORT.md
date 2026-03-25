@@ -6,11 +6,11 @@
 
 ---
 
-## 2. Technical Architecture: ADK 2.0 & Zero-BQ
+## 2. Technical Architecture: ADK 2.0 & Live-API
 The ERA has been modernized to **Level 3 Structural Maturity**, transitioning from a node-based LangGraph DAG to the **Native Vertex AI Agent Development Kit (ADK 2.0)**.
 
 ### 💎 Key Innovations:
-- **Zero-BQ Independence**: Unlike legacy RAG agents that rely on static BigQuery snapshots, the ERA is 100% live. It fetches, sanitizes, and synthesizes data directly from API source-of-truth.
+- **Live-API Strategy**: 100% decoupled from legacy static database dependencies. All data is fetched live from FRED, EIA, BLS, and NewsAPI.
 - **Consultative Scribe Persona**: Implements a McKinsey-style narrative synthesis, weaving disparate data points (e.g., correlations between rent affordability and labor quality) into a unified executive report.
 - **A2UI Rendering Protocol**: Supports dynamic visualization tags (`[A2UI: RENDER_CHART]`) to bridge the gap between text-based reasoning and visual analytics.
 

@@ -3,9 +3,9 @@
 [![Level 3 Maturity](https://img.shields.io/badge/Maturity-Level%203%20Structural-blueviolet)](https://github.com/GoogleCloudPlatform/agent-starter-pack)
 [![Framework-Atomic Agents](https://img.shields.io/badge/Framework-Atomic%20Agents-blue)](https://github.com/GoogleCloudPlatform/agent-starter-pack)
 [![ADK-Enabled](https://img.shields.io/badge/ADK-v2.0.9-green)](https://github.com/google/adk)
-[![Zero-BQ](https://img.shields.io/badge/Zero--BQ-Live%20API-orange)](#)
+[![Live-API](https://img.shields.io/badge/Live--API-Grounded-orange)](#)
 
-An advanced agentic intelligence designed for high-fidelity regional economic analysis, labor market evaluation, and corporate relocation strategy. Built on the **Vertex AI ADK 2.0** framework with a **Zero-BQ (Zero BigQuery)** live-data architecture.
+An advanced agentic intelligence designed for high-fidelity regional economic analysis, labor market evaluation, and corporate relocation strategy. Built on the **Vertex AI ADK 2.0** framework with an **API-First** live-data architecture.
 
 ---
 
@@ -13,7 +13,7 @@ An advanced agentic intelligence designed for high-fidelity regional economic an
 The Economic Research Agent has been modernized to **Level 3 Structural Maturity**. Unlike legacy RAG agents, ERA uses a **Live Consultative Persona** that synthesizes raw data into McKinsey-style executive reports.
 
 ### 💎 Key Features:
-- **Zero-BQ Strategy**: 100% decoupled from legacy BigQuery dependencies. All data is fetched live from FRED, EIA, BLS, and NewsAPI.
+- **Live-API Strategy**: 100% decoupled from legacy static database dependencies. All data is fetched live from FRED, EIA, BLS, and NewsAPI.
 - **Narrative Synthesis**: The agent avoids bullet-point dumps, weaving metrics into professional consulting narratives.
 - **A2UI Protocol**: Native support for `[A2UI: RENDER_CHART]` and `[A2UI: SHOW_METRICS]` tags for rich Streamlit rendering.
 - **Golden Suite Validation**: Hardened against a 21-question integration matrix covering all economic sectors.
@@ -137,9 +137,9 @@ The ERA is built for the **Vertex AI Reasoning Engine** (ADK 2.0).
 # 🌍 Step 1: Deploy to Google Cloud (Reasoning Engine)
 make deploy
 
-## 🔒 F. Zero-BQ Security & Privacy
+## 🔒 F. Cloud-Native Security & Privacy
 The ERA is engineered for **Enterprise Privacy** within the Google Cloud perimeter:
-- **Zero Data Retention**: No local databases or BigQuery tables are used. Data is processed in-memory and delivered to the consultant.
+- **Zero Data Retention**: No local databases or static tables are used. Data is processed in-memory and delivered to the consultant.
 - **Key-Safe Architecture**: All secrets are managed via `.env` (local) or Secret Manager (Vertex AI).
 - **Audit Logging**: Native integration with Cloud Logging for compliance tracking in site-selection workflows.
 
