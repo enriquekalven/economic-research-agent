@@ -25,7 +25,7 @@ test: ## Run unit tests with coverage
 
 run: ## Run the agent locally in interactive mode
 	@echo "🧠 Starting Interactive ERA Consultant Session..."
-	uv run --index https://pypi.org/simple python3 run_local.py
+	uv run python3 -m economic_research_agent.agent
 
 mcp: ## Run the agent as an MCP Server
 	@echo "🛰️ Starting ERA MCP Server..."
@@ -35,9 +35,7 @@ streamlit: ## Launch the Strategic Consultant Desktop (Streamlit)
 	@echo "🖥️ Launching ERA Strategic Consultant Desktop..."
 	uv run streamlit run streamlit_app.py
 
-serve: ## Launch the FastAPI production-ready server
-	@echo "🚀 Launching ERA REST API (Uvicorn)..."
-	uv run uvicorn server:app --reload --host 0.0.0.0 --port 8000
+# Note: Serve target removed as server.py was deprecated in 2.0 structure.
 
 test-integration: ## Run integration tests (Requires API keys)
 	@echo "🛰️ Running ERA integration tests..."
@@ -45,7 +43,7 @@ test-integration: ## Run integration tests (Requires API keys)
 
 deploy: ## Deploy the agent to Vertex AI Reasoning Engine
 	@echo "🚀 Deploying ERA to Vertex AI (Reasoning Engine)..."
-	PYTHONPATH=. uv run python3 $(MODERN_REPO)/app_utils/deploy.py
+	PYTHONPATH=. uv run python3 deployment/deploy.py
 
 register-gemini-enterprise: ## Register the agent with Gemini Enterprise (Reasoning Engine Spec)
 	@echo "🛰️ Registering ERA with Gemini Enterprise..."
