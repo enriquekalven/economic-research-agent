@@ -41,9 +41,12 @@ test-integration: ## Run integration tests (Requires API keys)
 	@echo "🛰️ Running ERA integration tests..."
 	uv run pytest tests/integration/
 
-deploy: ## Deploy the agent to Vertex AI Reasoning Engine
-	@echo "🚀 Deploying ERA to Vertex AI (Reasoning Engine)..."
+deploy: ## Deploy the agent to Vertex AI Reasoning Engine (Direct Vertex SDK)
+	@echo "🚀 Deploying ERA to Vertex (Direct SDK)..."
 	PYTHONPATH=. uv run python3 deployment/deploy.py
+
+
+
 
 register-gemini-enterprise: ## Register the agent with Gemini Enterprise (Reasoning Engine Spec)
 	@echo "🛰️ Registering ERA with Gemini Enterprise..."

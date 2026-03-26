@@ -51,6 +51,6 @@ def deploy_era_to_vertex(project_id: str, location: str = "us-central1", display
 if __name__ == "__main__":
     try:
         _, project = google.auth.default()
-        deploy_era_to_vertex(project_id=project)
+        deploy_era_to_vertex(project_id=project or "project-maui")
     except Exception as e:
         print(f"❌ Deployment Failed: {e}")

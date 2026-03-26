@@ -36,25 +36,10 @@ from economic_research_agent.tools.hud_skill import (
 from economic_research_agent.tools.tax_foundation_skill import fetch_state_tax_rates
 from economic_research_agent.tools.trade_skill import fetch_regional_trade_data
 from economic_research_agent.tools.regulatory_skill import fetch_regulatory_notices
+from .prompt import Prompts
 
-# 🏛️ ERA ADK 2.0 Instruction (Combining Planner/Researcher/Auditor/Scribe)
-ERA_INSTRUCTIONS = """
-You are a WORLD-CLASS Economic Research Agent (ERA), a direct competitor to high-end site-selection consultancies (like McKinsey, BCG, or Bain).
-Your mission is to provide 360-degree regional economic modeling for corporate decision-makers.
-
-### Consultative Workflow:
-1. **Planner**: Identify which data source is needed (FRED for macro stats, BLS for wages, BEA for GDP, HUD for housing).
-2. **Researcher**: Execute multiple tool-calls to gather the latest trusted parameters.
-3. **Auditor**: Validate metrics against potential hallucinations.
-4. **Scribe**: Generate a high-fidelity executive summary using the [A2UI] protocol where relevant.
-
-### 🏛️ Premium Persona & Formatting:
-- **Multi-Point Consulting Protocol**: When the user provides a numbered list of questions or a multi-part mission, treat each item as a distinct section of a "Consolidated Executive Report". Maintain consistent grounding rigor (invoking tools for every section) rather than summarizing toward the end.
-- **Narrative Synthesis**: Weave mathematical tool outputs into professional narrative sections. If a multi-part request is detected, use Bold Headers (e.g. '### 1. General Overview') for each section to maintain structural clarity.
-- **Side-by-Side Comparisons**: When comparing multiple states, ALWAYS prioritize standard Markdown tables for data density.
-- **Visual-Visualizations**: If you detect numeric trends (unemployment over years, trade flux), proactively invoke `generate_economic_chart` and place `[A2UI: RENDER_CHART]` inline. 
-- **Zero Hallucination Tolerance**: If a tool returns No Data for a specific state (e.g. lack of electricity rates for Oregon), explicitly state "Data unavailable for [Region]" rather than omitting the region from the analysis.
-"""
+prompts = Prompts()
+ERA_INSTRUCTIONS = prompts.main_era_instructions()
 
 class ERAAgent:
     agent_framework = "google-adk"
@@ -116,6 +101,9 @@ class ERAAgent:
             "HUD_API_KEY": get_cloud_secret("HUD_API_KEY"),
             "FEC_API_KEY": get_cloud_secret("FEC_API_KEY"),
             "NEWS_API_KEY": get_cloud_secret("NEWS_API_KEY"),
+            "SERPER_API_KEY": get_cloud_secret("SERPER_API_KEY"),
+            "CDC_APP_TOKEN": get_cloud_secret("CDC_APP_TOKEN"),
+            "OPENFDA_API_KEY": get_cloud_secret("OPENFDA_API_KEY"),
         }
         for k, v in env_vars.items():
             if v: os.environ[k] = v
@@ -134,7 +122,56 @@ class ERAAgent:
                 for part in res.content.parts:
                     if part.text:
                         full_text += part.text
-        return full_text
+
+        # ⚖️ Active Actor-Critic Loop (Self-Correction)
+        try:
+            from .sub_agents.agent import JudgeAgent
+            from google.adk.apps import App
+            
+            judge = JudgeAgent().get_agent()
+            judge_app = App(root_agent=judge, name="Judge_Review")
+            judge_runner = InMemoryRunner(app=judge_app)
+            judge_runner.auto_create_session = True
+            
+            # Iteration 1: Judge the initial draft
+            judge_prompt = (
+                "Please audit this draft report. Use Google Search to verify quantitative claims if needed. "
+                "If you find contradictions or hallucinations, start your response with '[REJECT]' and explain exactly what to fix."
+                f"\n\nDraft:\n{full_text}"
+            )
+            judge_responses = judge_runner.run(new_message=judge_prompt)
+            
+            judge_text = ""
+            for res in judge_responses:
+                if hasattr(res, 'content') and res.content.parts:
+                    for part in res.content.parts:
+                        if part.text:
+                            judge_text += part.text
+            
+            # If rejected, run Researcher again with the correction context!
+            if "[REJECT]" in judge_text:
+                print("⚠️ [Actor-Critic] Judge rejected the draft! Self-correcting...")
+                correction_prompt = (
+                    f"Your previous draft was REJECTED by the Auditor Judge. Please use your tools to FIX the following discrepancies and generate a final report:\n\n"
+                    f"### Auditor Feedback:\n{judge_text}\n\n"
+                    f"### Previous Draft:\n{full_text}"
+                )
+                
+                # Reset runner or run again
+                retry_responses = runner.run(new_message=correction_prompt)
+                corrected_text = ""
+                for res in retry_responses:
+                    if hasattr(res, 'content') and res.content.parts:
+                        for part in res.content.parts:
+                            if part.text:
+                                corrected_text += part.text
+                
+                return f"{corrected_text}\n\n---\n### ⚖️ Auditor Judge Verification (Self-Corrected v2)\n{judge_text}"
+                
+            return f"{full_text}\n\n---\n### ⚖️ Auditor Judge Verification (Passed v1)\n{judge_text}"
+            
+        except Exception as e:
+            return f"{full_text}\n\n---\n⚠️ *Judge verification failed: {e}*"
 
 # Export the entry points for different environments
 export_agent = ERAAgent()

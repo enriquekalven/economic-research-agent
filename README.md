@@ -5,38 +5,44 @@
 [![ADK-Enabled](https://img.shields.io/badge/ADK-v2.0.9-green)](https://github.com/google/adk)
 [![Live-API](https://img.shields.io/badge/Live--API-Grounded-orange)](#)
 
-An advanced agentic intelligence designed for high-fidelity regional economic analysis, labor market evaluation, and corporate relocation strategy. Built on the **Vertex AI ADK 2.0** framework with an **API-First** live-data architecture.
+An enterprise-grade, **Multi-Agent intelligence** for high-fidelity regional economic analysis, labor market evaluation, and cross-industry site selection (Retail, Tech, Manufacturing, Finance, Healthcare). Built on Vertex AI ADK 2.0 with a 100% Live-API grounded architecture.
 
 ---
 
 ## 🏛️ Executive Summary
-The **Economic Research Agent (ERA)** is a production-grade site-selection consultant built on **Vertex AI ADK 2.0** and **Gemini 3.1**. Designed for corporate research, ERA automates multi-city regional cost-modeling by orchestrating 30+ live public APIs (FRED, BLS, CENSUS, HUD, EIA) into McKinsey-style strategic briefs.
+The **Economic Research Agent (ERA)** is a production-grade site-selection and market intelligence consultant. Designed for corporate research, ERA automates comparative metropolitan cost-modeling by orchestrating 30+ live public APIs (FRED, BLS, CENSUS, HUD, EIA) into McKinsey-style strategic briefs—now upgraded with an automated **Auditor Judge Agent** (via Serper Live Search) for zero-hallucination verification.
 
 ![ERA Architecture](agent_pattern.png)
 
 ```mermaid
 graph TD
-    User([User Query]) --> Agent["Economic Research Agent (Planner)"]
+    User([User Query]) --> Planner["Researcher Agent (Planner)"]
     
-    subgraph "Dynamic Execution Loop (ReAct)"
-        Agent --> ToolRouter{"Tool Router"}
+    subgraph "Structured Live Grounding (ReAct)"
+        Planner --> ToolRouter{"Tool Router"}
         ToolRouter --> Macro["Macro Hub (FRED, BEA, Census)"]
         ToolRouter --> Labor["Labor Matrix (BLS Stats, Wage Data)"]
-        ToolRouter --> Policy["Policy & Risk (FEC, Federal Register)"]
-        ToolRouter --> Infra["Infrastructure (EIA Energy, Real Estate)"]
+        ToolRouter --> Policy["Policy & Risk (FEC, OpenFEC)"]
+        ToolRouter --> Infra["Infrastructure (EIA, HUD)"]
     end
     
-    Macro --> LiveAPIs([External Public APIs])
+    Macro --> LiveAPIs([Structured Public APIs])
     Labor --> LiveAPIs
     Policy --> LiveAPIs
     Infra --> LiveAPIs
     
-    LiveAPIs -->|"Grounded Data"| Agent
-    Agent --> Narrative["Narrative Synthesis & Scribe"]
+    LiveAPIs -->|"Grounded Data"| Planner
+    
+    Planner --> Judge["Auditor Judge Agent (Critic)"]
+    Judge --> Search["Serper.dev Live Search"]
+    Search -->|"Context Tracking"| Judge
+    
+    Judge --> Narrative["Narrative Synthesis & Scribe"]
     Narrative -->|"[A2UI] Response"| User
     
-    style Agent fill:#f9f,stroke:#333,stroke-width:2px
-    style LiveAPIs fill:#bbf,stroke:#333,stroke-width:2px
+    style Planner fill:#f9f,stroke:#333,stroke-width:2px
+    style Judge fill:#ffcc99,stroke:#333,stroke-width:2px
+    style Search fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
 ### 📊 Agent Details
@@ -105,6 +111,8 @@ The ERA uses a modular grounding strategy. Set these in your `.env` file (see `.
 | **FEC** | Political Risk | **Required** | [Sign up for FEC API](https://api.open.fec.gov/) |
 | **EIA** | Energy & Power | **Optional** | [Sign up for EIA API](https://www.eia.gov/opendata/register.php) |
 | **NewsAPI** | Sentiment | **Optional** | [Sign up for NewsAPI](https://newsapi.org/register) |
+| **Serper** | Live Judge Search | **Optional** | [Sign up for Serper.dev](https://serper.dev/) |
+| **CDC** | Healthcare Stats | **Optional** | [Sign up for CDC Data](https://data.cdc.gov/) |
 
 ---
 

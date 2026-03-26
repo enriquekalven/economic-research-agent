@@ -33,7 +33,7 @@ while IFS='=' read -r key value; do
     
     # Process specific keys
     case "$key" in
-        GEMINI_API_KEY|BEA_API_KEY|FRED_API_KEY|CENSUS_API_KEY|EIA_API_KEY|BLS_API_KEY|NEWS_API_KEY|HUD_API_KEY|FEC_API_KEY)
+        GEMINI_API_KEY|BEA_API_KEY|FRED_API_KEY|CENSUS_API_KEY|EIA_API_KEY|BLS_API_KEY|NEWS_API_KEY|HUD_API_KEY|FEC_API_KEY|SERPER_API_KEY|CDC_APP_TOKEN|OPENFDA_API_KEY)
             create_secret "$key" "$value"
             ;;
     esac

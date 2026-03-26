@@ -43,44 +43,42 @@ GOLDEN_QUESTIONS = [
         "source": "OpenSecrets",
         "question": "Which states have upcoming corporate tax sunsets in the next 24 months?",
         "expected_mention": "tax"
+    },
+    # 7. Healthcare (CDC)
+    {
+        "source": "CDC",
+        "question": "What are the regional hospital utilization rates using data.cdc.gov for Atlanta vs. Boston?",
+        "expected_mention": "boston"
+    },
+    # 8. Live Judge Search (Serper)
+    {
+        "source": "Serper",
+        "question": "Verify if there are any recent (2025-2026) news reports about semiconductor plant closures in Texas.",
+        "expected_mention": "texas"
     }
 ]
 
 @pytest.fixture(scope="module")
-def runner():
+def engine():
     # Loophole to run project tests from inside scratch workspace
     os.chdir(PROJECT_ROOT)
     from dotenv import load_dotenv
     load_dotenv()
     
-    from economic_research_agent.agent import agent
-    runner_instance = InMemoryRunner(app=agent)
-    runner_instance.auto_create_session = True
-    return runner_instance
+    from economic_research_agent.agent import reasoning_engine
+    return reasoning_engine
 
 @pytest.mark.parametrize("scenario", GOLDEN_QUESTIONS)
-def test_golden_question(runner, scenario):
+def test_golden_question(engine, scenario):
     """Run golden questions against the live agent to verify integration."""
     question = scenario["question"]
     expected_mention = scenario["expected_mention"]
     
     print(f"\nRunning Golden Question for {scenario['source']}: {question}")
     
-    response_generator = runner.run(
-        new_message=types.Content(parts=[types.Part(text=question)]),
-        user_id="integration-tester",
-        session_id=f"test-session-{scenario['source'].lower()}"
-    )
-    
-    report_parts = []
-    for event in response_generator:
-        if event.content and event.content.parts:
-            for part in event.content.parts:
-                if part.text:
-                    report_parts.append(part.text)
-                    
-    report = "".join(report_parts)
+    report = engine.query(input=question)
     
     assert len(report) > 0, f"Received empty report for {scenario['source']}"
     assert expected_mention.lower() in report.lower(), f"Expected mention of '{expected_mention}' in response for {scenario['source']}"
     print(f"Success! Response contains '{expected_mention}': {report[:100]}...")
+
